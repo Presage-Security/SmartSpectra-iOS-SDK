@@ -224,7 +224,10 @@ public extension ViewController.Screening {
         
         @objc func backButtonPressed() {
             stopRecording()
-            navigationController?.popViewController(animated: true)
+                DispatchQueue.main.async {
+                    self.stopRecording()
+                    self.dismiss(animated: true, completion: nil)
+                }
         }
     }
 }
