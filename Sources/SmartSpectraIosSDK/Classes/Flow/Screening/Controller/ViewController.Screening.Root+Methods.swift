@@ -94,7 +94,10 @@ extension ViewController.Screening.Root {
     }
 
     private func lockCameraSettings() {
-        let device = videoDeviceInput.device
+        guard let device = videoDeviceInput?.device else {
+                Logger.log("Error: videoDeviceInput is nil")
+                return
+            }
         do {
             try device.lockForConfiguration()
             
@@ -118,7 +121,10 @@ extension ViewController.Screening.Root {
     
     
     private func unlockCameraSettings() {
-        let device = videoDeviceInput.device
+        guard let device = videoDeviceInput?.device else {
+                Logger.log("Error: videoDeviceInput is nil")
+                return
+            }
         do {
             try device.lockForConfiguration()
             
