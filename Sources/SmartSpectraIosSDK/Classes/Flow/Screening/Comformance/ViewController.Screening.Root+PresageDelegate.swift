@@ -91,9 +91,25 @@ extension ViewController.Screening.Root: PresagePreprocessingDelegate {
         
 
         // Encode the updated dictionary back to JSON data
-        guard  let _jsonData = try? JSONSerialization.data(withJSONObject: _tmpJSON, options: [.prettyPrinted]) else {
+        guard  let _jsonData = try? JSONSerialization.data(withJSONObject: _tmpJSON, options: []) else {
             fatalError("JSON DATA HAS SOME ISSUE")
         }
+        
+//        FOR JSON SAVING
+//        let fileName = "output.json"
+//        guard let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+//                    print("Failed to access document directory")
+//                    return
+//                }
+//        let fileURL = documentDirectory.appendingPathComponent(fileName)
+//        do {
+//                    try _jsonData.write(to: fileURL, options: .atomic)
+//                    print("JSON saved to \(fileURL)")
+//                } catch {
+//                    print("Failed to write JSON data to file: \(error)")
+//                }
+//        END FOR JSON SAVING
+        
         self.jsonData = _jsonData
         if self.counter == 0 {
             self.moveToProcessing()

@@ -188,7 +188,7 @@ final public class SmartSpectraButton: UIButton {
             self.openSafari(withURL: "https://api.physiology.presagetech.com/termsofservice")
         })
 
-        actionSheet.addAction(UIAlertAction(title: "Instructions of Use", style: .default) { _ in
+        actionSheet.addAction(UIAlertAction(title: "Instructions for Use", style: .default) { _ in
             self.openSafari(withURL: "https://api.physiology.presagetech.com/instructions")
         })
 
@@ -243,13 +243,13 @@ final public class SmartSpectraButton: UIButton {
     
     internal func sendDataToApp(model: Model.Response.ProcessedData?) {
         let view = SmartSpectraResultView()
-        let hrRound = round(model?.hr ?? 0.0)
-        let rrRound = round(model?.rr ?? 0.0)
-        let hrRoundInt = Int(hrRound)
-        let rrRoundInt = Int(rrRound)
-        view.updateResultLabel(with: "\(hrRoundInt) /  \(rrRoundInt)")
+        let strictPulseRate = round(model?.strictPulseRate ?? 0.0)
+        let strictBreathingRate = round(model?.strictBreathingRate ?? 0.0)
+        let strictPulseRateInt = Int(strictPulseRate)
+        let strictBreathingRateInt = Int(strictBreathingRate)
+        view.updateResultLabel(with: "\(strictPulseRateInt) /  \(strictBreathingRateInt)")
         delegate?.passProcessedView(view)
-        NotificationCenter.default.post(name: Notification.Name("SmartSpecteraUpdateResultView"), object: "\(hrRoundInt) /  \(rrRoundInt)")
+        NotificationCenter.default.post(name: Notification.Name("SmartSpecteraUpdateResultView"), object: "\(strictPulseRateInt) /  \(strictBreathingRateInt)")
     }
 
     /// Helper method to find the view controller in the view hierarchy.
