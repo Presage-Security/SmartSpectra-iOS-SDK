@@ -12,6 +12,8 @@ public extension Model.Response {
         public var id: String
         public var hr: Double
         public var rr: Double
+        public var strictPulseRate: Double
+        public var strictBreathingRate: Double
         
         enum CodingKeys: String, CodingKey {
             case id

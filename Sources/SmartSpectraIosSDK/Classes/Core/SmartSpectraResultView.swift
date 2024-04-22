@@ -14,7 +14,7 @@ import Combine
 final public class SmartSpectraResultView: UIView {
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = " HR          RR"
+        label.text = "        Pulse Rate        Breathing Rate"
         label.textColor = UIColor(red: 0.00, green: 0.00, blue: 0.00, alpha: 0.38)
         label.textAlignment = .center
         label.font = UIFont.boldSystemFont(ofSize: 20.0)

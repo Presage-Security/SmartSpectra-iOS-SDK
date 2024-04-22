@@ -97,43 +97,55 @@ extension Service.Repository {
                     case .success(let responseData):
                         do {
                             if let json = try JSONSerialization.jsonObject(with: responseData, options: []) as? [String: Any] {
+                                SharedDataManager.shared.jsonMetrics = json
                                 let id = json["id"] as? String
-                                let rr = json["rr"] as? [String: [String: Any]]
-                                let so2 = json["so2"] as? [String: [String: Any]]
-                                let hr = json["hr"] as? [String: [String: Any]]
+                                let breath = json["breath"] as? [String: [String: Any]]
+                                let breathingRates = breath?["rr"] as? [String: [String: Any]]
+                                let pulse = json["pulse"] as? [String: [String: Any]]
+                                let pulseRates = pulse?["hr"] as? [String: [String: Any]]
 
                                 let uploadDate = json["upload_date"] as? String
-                                _ = json["hrv"] as? [String: Any]
+                                
 
-                                // Access the values within so2 and hr dictionaries
-                                if let so2Values = so2?.values as? [String: Any] {
-                                    for value in so2Values {
-                                        if let nestedValue = value.value as? [String: Any],
-                                           let value = nestedValue["value"] as? Double {
-                                            debugPrint("SO2 Value: \(value)")
-                                        }
+                                
+
+                                let arrayPulseRatesValues = (pulseRates?.values.map { $0["value"] as? Double }.compactMap { $0 })
+                            
+                                var strictPulseRate: Double?
+                                if let arrayHrValuesUnwrapped = arrayPulseRatesValues,
+                                arrayHrValuesUnwrapped.count > 0 {
+                                    let hrValueSum = arrayHrValuesUnwrapped.reduce(0, +)    // take the sum
+                                    strictPulseRate = hrValueSum / Double(arrayHrValuesUnwrapped.count) // take the average
+                                    DispatchQueue.main.async {
+                                        SharedDataManager.shared.strictPulseRate = strictPulseRate ?? 0.0
                                     }
                                 }
-
-                                let arrayHrValues = (hr?.values.map { $0["value"] as? Double }.compactMap { $0 })
-                                if let lastHRValue = arrayHrValues?.last {
-                                    hrValue =   lastHRValue
-                                    debugPrint("Last HR Value: \(lastHRValue)")
-                                }
                                 
-                                let arrayRRValues = (rr?.values.map { $0["value"] as? Double }.compactMap { $0 })
-                                if let lastRRValue = arrayRRValues?.last {
-                                    rrValue =   lastRRValue
-                                    debugPrint("Last HR Value: \(lastRRValue)")
+                                let arrayBreathRateValues = (breathingRates?.values.map { $0["value"] as? Double }.compactMap { $0 })
+                            
+                                
+                                var strictBreathingRate: Double?
+                                if let arrayRRValuesUnwrapped = arrayBreathRateValues,
+                                   arrayRRValuesUnwrapped.count > 0 {
+                                    let RRValueSum = arrayRRValuesUnwrapped.reduce(0, +)    // take the sum
+                                    strictBreathingRate = RRValueSum / Double(arrayRRValuesUnwrapped.count) // take the average
+                                    DispatchQueue.main.async {
+                                        SharedDataManager.shared.strictBreathingRate = strictBreathingRate ?? 0.0
+                                    }
                                 }
-
                                 
                                 // Print other values
                                 debugPrint("ID: \(id ?? "")")
                                 debugPrint("Upload Date: \(uploadDate ?? "")")
                                 if  let id = id
                                 {
-                                    let model: Model.Response.ProcessedData? = .init(id: id, hr: hrValue, rr: rrValue )
+                                    let model: Model.Response.ProcessedData? = .init(
+                                        id: id,
+                                        hr: hrValue,
+                                        rr: rrValue,
+                                        strictPulseRate: strictPulseRate ?? 0.0,
+                                        strictBreathingRate: strictBreathingRate ?? 0.0
+                                    )
                                     completion(.success(model))
                                 } else {
                                     completion(.failure(Service.Network.Errors.emptyData))

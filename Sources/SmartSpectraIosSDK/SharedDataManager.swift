@@ -12,6 +12,10 @@ import UIKit
 class SharedDataManager: ObservableObject {
     static let shared = SharedDataManager()
     
+    @Published var strictPulseRate: Double = 0.0
+    @Published var strictBreathingRate: Double = 0.0
+    @Published var jsonMetrics: [String: Any]?
+    
     @Published var resultView : SmartSpectraResultView = {
         let res = SmartSpectraResultView()
         res.translatesAutoresizingMaskIntoConstraints = false

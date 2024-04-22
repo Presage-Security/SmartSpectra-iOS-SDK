@@ -17,6 +17,9 @@ enum state {
 }
 public extension ViewController.Screening {
     class Root: UIViewController {
+        //Screen Brightness
+        private var originalBrightness: CGFloat = 0.0
+        
         //MARK: - UI Components
         var core: PresagePreprocessing = PresagePreprocessing()
         var buttonState: state = .disable {
@@ -189,10 +192,13 @@ public extension ViewController.Screening {
         
         public override func viewWillAppear(_ animated: Bool) {
             super.viewWillAppear(animated)
+            originalBrightness = UIScreen.main.brightness  // Store current brightness
+            UIScreen.main.brightness = 1.0
         }
         
         public override func viewWillDisappear(_ animated: Bool) {
             super.viewWillDisappear(animated)
+            UIScreen.main.brightness = originalBrightness
         }
         
         private func setTitleView() {

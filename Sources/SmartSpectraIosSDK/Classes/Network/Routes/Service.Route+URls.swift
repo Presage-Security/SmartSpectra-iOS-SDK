@@ -8,8 +8,8 @@
 import Foundation
 extension Service.Routes {
     enum URLs: String {
-        case UploadUrls = "/v1/upload-url"
-        case Complete = "/v1/complete"
+        case UploadUrls = "/v2/upload-url"
+        case Complete = "/v2/complete"
         case RetrieveData = "/retrieve-data"
     }
 }
