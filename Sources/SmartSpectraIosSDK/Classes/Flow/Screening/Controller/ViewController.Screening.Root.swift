@@ -176,7 +176,7 @@ public extension ViewController.Screening {
         public override func viewDidLoad() {
             super.viewDidLoad()
             self.navigationController?.interactivePopGestureRecognizer?.delegate = self
-            self.title = "Presage Private"
+            self.title = "Presage SmartSpectra"
             self.view.backgroundColor = .white
             navigationController?.setNavigationBarHidden(false, animated: true)
             setCustomBackButton()
@@ -204,7 +204,7 @@ public extension ViewController.Screening {
         private func setTitleView() {
             let titleView = UIView()
             let titleLabel = UILabel()
-            titleLabel.text = "Presage Private"
+            titleLabel.text = "Presage SmartSpectra"
             titleLabel.textColor = .black
             titleLabel.font = UIFont.systemFont(ofSize: 17, weight: .bold)
             titleLabel.sizeToFit()
