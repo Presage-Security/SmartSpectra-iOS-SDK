@@ -20,7 +20,8 @@ let package = Package(
         .target(
             name: "SmartSpectraIosSDK",
             dependencies: ["PresagePreprocessing"],
-            path: "Sources/SmartSpectraIosSDK"
+            path: "Sources/SmartSpectraIosSDK",
+            resources: [.process("Resources")]
         ),
         .binaryTarget(
             name: "PresagePreprocessing",

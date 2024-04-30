@@ -3,7 +3,6 @@ The Presage SmartSpectra SDK for Swift Package Manager (SPM) measures physiology
 
 ## Requirements
 
-- iOS 13.0 or later
-- Swift 5.0 or later
-- Xcode 11.0 or later
-- Swift Tools 5.10 or later
+- iOS 15.0 or later
+- Xcode 15.0 or later
+- Not usable with emulators 

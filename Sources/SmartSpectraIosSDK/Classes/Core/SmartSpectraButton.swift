@@ -8,11 +8,11 @@
 import Foundation
 import UIKit
 import Combine
+import SwiftUI
 
 /// A custom button with predefined appearance and behavior for SmartSpectra SDK.
 @available(iOS 13.0, *)
 final public class SmartSpectraButton: UIButton {
-    
     private var checkupButton: CheckupButton!
     private var infoButton: UIButton!
     public let responseSubject = PassthroughSubject<String, Never>()
@@ -152,24 +152,56 @@ final public class SmartSpectraButton: UIButton {
     }
 
     internal func handleWalkTrough() {
-        var viewDescriptions: [(view: UIView, description: String)] = [
-                (view: infoButton, description: "This is the first view."),
-                (view: checkupButton, description: "This is the second view.")
-            ]
-        if let viewController = self.superview?.viewController {
-            for subview in viewController.view.subviews {
-                if subview is SmartSpectraResultView {
-                    viewDescriptions.append((view: subview, description: "This is the third view."))
+        let imagePageVC = ImagePageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
+        imagePageVC.onTutorialCompleted = { [weak self] in
+            self?.presentUserAgreement()
+        }
+        findViewController()?.present(imagePageVC, animated: true, completion: nil)
+        UserDefaults.standard.set(true, forKey: "WalkthroughShown")
+    }
+    private func presentUserAgreement() {
+        if !UserDefaults.standard.bool(forKey: "HasAgreedToTerms") {
+            checkInternetConnectivity { [weak self] isConnected in
+                DispatchQueue.main.async {
+                    if isConnected {
+                        let agreementViewController = ViewController.Agreement.Root()
+                        let navigationController = UINavigationController(rootViewController: agreementViewController)
+                        navigationController.modalPresentationStyle = .fullScreen
+                        navigationController.modalTransitionStyle = .coverVertical
+
+                        if let rootViewController = UIApplication.shared.windows.first?.rootViewController {
+                            rootViewController.present(navigationController, animated: true, completion: nil)
+                        }
+                    } else {
+                        self?.showNoInternetConnectionAlert()
+                    }
                 }
             }
         }
-
-        let viewController = self.findViewController() ?? self.superview?.viewController ?? UIViewController()
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0 , execute: {
-            WalkthroughViewController.presentWalkthrough(page: viewController, withViewsAndDescriptions: viewDescriptions)
-
-        })
+    }
+    
+    
+    private func checkInternetConnectivity(completion: @escaping (Bool) -> Void) {
+        guard let url = URL(string: "https://www.google.com") else {
+            completion(false)
+            return
+        }
+        let task = URLSession.shared.dataTask(with: URLRequest(url: url)) { _, response, _ in
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                completion(true)
+            } else {
+                completion(false)
+            }
+        }
+        task.resume()
+    }
+    
+    private func showNoInternetConnectionAlert() {
+        if let rootViewController = UIApplication.shared.windows.first?.rootViewController {
+            let alert = UIAlertController(title: "No Internet Connection", message: "Please check your internet connection and try again.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            rootViewController.present(alert, animated: true, completion: nil)
+        }
     }
 
     func openSafari(withURL urlString: String) {
@@ -221,23 +253,26 @@ final public class SmartSpectraButton: UIButton {
         // Add code here to initialize the SmartSpectra SDK
         // For example, you can use the apiKey property to pass the API key to the SDK initialization process.
         // Once the SDK is initialized, you can proceed with presenting the screening page.
-
-        let smartSpectra = SmartSpectra(apiKey: apiKey)
-        let sPage = smartSpectra.ScreeningPage(recordButton: Model.Option.Button.Record.init(backgroundColor: UIColor(red: 0.94, green: 0.34, blue: 0.36, alpha: 1.00), titleColor: .white, borderColor: UIColor(red: 0.94, green: 0.34, blue: 0.36, alpha: 1.00), title: "Record"))
-
-        sPage.onDataPassed = {[weak self] data in
-            self?.sendDataToApp(model: data)
-        }
-        // Assuming you have access to the view controller where the button is added
-        let viewController = self.findViewController()
-        // Check if the current view controller is embedded in a navigation controller
-        if let navigationController = viewController?.navigationController {
-            navigationController.pushViewController(sPage, animated: true)
+        if !UserDefaults.standard.bool(forKey: "HasAgreedToTerms") {
+            presentUserAgreement()
         } else {
-            // If not, present it modally
-            let nav = UINavigationController(rootViewController: sPage)
-            nav.modalPresentationStyle = .overFullScreen
-            viewController?.present(nav, animated: true)
+            let smartSpectra = SmartSpectra(apiKey: apiKey)
+            let sPage = smartSpectra.ScreeningPage(recordButton: Model.Option.Button.Record.init(backgroundColor: UIColor(red: 0.94, green: 0.34, blue: 0.36, alpha: 1.00), titleColor: .white, borderColor: UIColor(red: 0.94, green: 0.34, blue: 0.36, alpha: 1.00), title: "Record"))
+            
+            sPage.onDataPassed = {[weak self] data in
+                self?.sendDataToApp(model: data)
+            }
+            // Assuming you have access to the view controller where the button is added
+            let viewController = self.findViewController()
+            // Check if the current view controller is embedded in a navigation controller
+            if let navigationController = viewController?.navigationController {
+                navigationController.pushViewController(sPage, animated: true)
+            } else {
+                // If not, present it modally
+                let nav = UINavigationController(rootViewController: sPage)
+                nav.modalPresentationStyle = .overFullScreen
+                viewController?.present(nav, animated: true)
+            }
         }
     }
     
@@ -247,9 +282,19 @@ final public class SmartSpectraButton: UIButton {
         let strictBreathingRate = round(model?.strictBreathingRate ?? 0.0)
         let strictPulseRateInt = Int(strictPulseRate)
         let strictBreathingRateInt = Int(strictBreathingRate)
-        view.updateResultLabel(with: "\(strictPulseRateInt) /  \(strictBreathingRateInt)")
-        delegate?.passProcessedView(view)
-        NotificationCenter.default.post(name: Notification.Name("SmartSpecteraUpdateResultView"), object: "\(strictPulseRateInt) /  \(strictBreathingRateInt)")
+        // Determine the display text for pulse and breathing rates
+        if strictPulseRateInt == 0 || strictBreathingRateInt == 0 {
+                let message = "Your data was insufficient for an accurate measurement. Please move to a better-lit location, hold still, and try again. For more guidance, see the tutorial in the dropdown menu of the 'i' icon next to 'Checkup.'"
+                view.updateResultLabel(with: message)
+                NotificationCenter.default.post(name: Notification.Name("SmartSpecteraUpdateResultView"), object: "\(message)")
+            } else {
+                // If both readings are valid, format the results with BPM
+                let pulseRateText = "Pulse Rate: \(strictPulseRateInt) BPM"
+                let breathingRateText = "Breathing Rate: \(strictBreathingRateInt) BPM"
+                view.updateResultLabel(with: "\(breathingRateText)\n\(pulseRateText)")
+                NotificationCenter.default.post(name: Notification.Name("SmartSpecteraUpdateResultView"), object: "\(breathingRateText)\n\(pulseRateText)")
+            }
+        
     }
 
     /// Helper method to find the view controller in the view hierarchy.
@@ -307,4 +352,149 @@ final public class SmartSpectraButton: UIButton {
         }
     }
 }
+
+class ImagePageViewController: UIPageViewController, UIPageViewControllerDataSource {
+    var pages: [UIViewController] = []
+    var onTutorialCompleted: (() -> Void)? // Closure to be called when the tutorial is completed
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.dataSource = self
+
+        // Setup the pages array with image and description
+        let imageNames = ["tutorial_image1", "tutorial_image2", "tutorial_image3", "tutorial_image4", "tutorial_image5", "tutorial_image6", "tutorial_image7"]
+        let descriptions = [
+            "Place your device running SmartSpectra on a stable surface, like a table.",
+            "SmartSpectra works best when you're in a well-lit environment with natural sunlight for optimal performance.",
+            "SmartSpectra works best when your face is evenly lit and does not have shadows.",
+            "Avoid having bright light sources directly behind your face, such as overhead lighting.",
+            "Stay still and refrain from talking while using SmartSpectra.",
+            "You'll receive real-time feedback during the measurement process to assist you.",
+            "Start recording with SmartSpectra upon the 'Hold Still and Record' prompt. A 30-second recording follows, and should feedback appear, comply with the prompts for an auto-restart."
+        ]
+
+        for (index, imageName) in imageNames.enumerated() {
+            let vc = newViewController(imageName: imageName, description: descriptions[index])
+            pages.append(vc)
+        }
+
+        if let firstViewController = pages.first {
+            setViewControllers([firstViewController], direction: .forward, animated: true, completion: nil)
+        }
+        
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+            super.viewWillDisappear(animated)
+            
+            if isBeingDismissed {
+                // This means the ImagePageViewController is being dismissed
+                self.onTutorialCompleted?() // Invoke the completion closure after the last page transition completes
+            }
+        }
+
+
+    func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
+        guard let viewControllerIndex = pages.firstIndex(of: viewController) else {
+            return nil
+        }
+
+        let previousIndex = viewControllerIndex - 1
+        
+        if previousIndex >= 0 {
+            return pages[previousIndex]
+        } else {
+            return nil
+        }
+    }
+
+    func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
+        guard let viewControllerIndex = pages.firstIndex(of: viewController) else {
+            return nil
+        }
+
+        let nextIndex = viewControllerIndex + 1
+        
+        // Check if the current page is the last one
+        if nextIndex >= pages.count {
+            // Delay the completion callback slightly to ensure it fires after the user navigates away from the last page
+            return nil
+        }
+        
+        return pages[nextIndex]
+    }
+
+    private func newViewController(imageName: String, description: String) -> UIViewController {
+        let vc = UIViewController()
+        vc.view.backgroundColor = .white
+        let imageView = UIImageView()
+
+        // Load the image into the UIImageView
+        if let image = UIImage(named: imageName, in: .module, compatibleWith: nil) {
+            imageView.image = image
+        } else {
+            print("Failed to load image: \(imageName)")
+            // Set a placeholder image if needed
+        }
+
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(imageView)
+
+        // Constraints for imageView to fill the view but leave space for the label overlay
+        NSLayoutConstraint.activate([
+            imageView.topAnchor.constraint(equalTo: vc.view.topAnchor),
+            imageView.leadingAnchor.constraint(equalTo: vc.view.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: vc.view.trailingAnchor),
+            imageView.bottomAnchor.constraint(equalTo: vc.view.bottomAnchor, constant: -100)
+        ])
+
+        // Create and configure the description label
+        let descriptionLabel = UILabel()
+        descriptionLabel.text = description
+        descriptionLabel.backgroundColor = UIColor.white.withAlphaComponent(0.9) // Solid white background for readability
+        descriptionLabel.textColor = .black
+        descriptionLabel.font = UIFont.systemFont(ofSize: 20) // Adjust font size as necessary
+        descriptionLabel.textAlignment = .center
+        descriptionLabel.numberOfLines = 0 // Allows label to expand for multiple lines
+        descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(descriptionLabel)
+
+        // Constraints for descriptionLabel to align it at the bottom
+        let descriptionLabelHeight: CGFloat = 150 // Increase the height as necessary to fit the text
+        NSLayoutConstraint.activate([
+            descriptionLabel.leadingAnchor.constraint(equalTo: vc.view.leadingAnchor),
+            descriptionLabel.trailingAnchor.constraint(equalTo: vc.view.trailingAnchor),
+            descriptionLabel.bottomAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.bottomAnchor), // Align to the bottom safe area
+            descriptionLabel.heightAnchor.constraint(equalToConstant: descriptionLabelHeight)
+        ])
+
+        return vc
+    }
+}
+
+extension Image {
+    init(packageResource name: String, ofType type: String) {
+        #if canImport(UIKit)
+        guard let path = Bundle.module.path(forResource: name, ofType: type),
+              let image = UIImage(contentsOfFile: path) else {
+            self.init(name)
+            return
+        }
+        self.init(uiImage: image)
+        #elseif canImport(AppKit)
+        guard let path = Bundle.module.path(forResource: name, ofType: type),
+              let image = NSImage(contentsOfFile: path) else {
+            self.init(name)
+            return
+        }
+        self.init(nsImage: image)
+        #else
+        self.init(name)
+        #endif
+    }
+}
+
+
+
 

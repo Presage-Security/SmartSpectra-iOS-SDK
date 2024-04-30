@@ -34,16 +34,10 @@ public struct SmartSpectraSwiftUIView: UIViewControllerRepresentable {
 
 public class SampleViewController: UIViewController {
     var resultView: SmartSpectraResultView = SharedDataManager.shared.resultView
-//    lazy var resultView : SmartSpectraResultView = {
-//        let res = SmartSpectraResultView()
-//        res.translatesAutoresizingMaskIntoConstraints = false
-//        return res
-//    }()
 
     // This is the designated initializer for UIViewController
     public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
-        // Custom initialization
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -52,30 +46,22 @@ public class SampleViewController: UIViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-//        self.core.delegate = self
-//        self.core.start()
 
         overrideUserInterfaceStyle = .light
-//        addInfoButton()
         view.addSubview(resultView)
+        // Set the background color to white
+        resultView.backgroundColor = .white
+
+        // Set the border properties
+        resultView.layer.borderColor = UIColor.red.cgColor
+        resultView.layer.borderWidth = 3.0
         NSLayoutConstraint.activate([
             resultView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
             resultView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
             resultView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 16),
             resultView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -16),
         ])
-//        view.addSubview(button)
-//        NSLayoutConstraint.activate([
-//            button.topAnchor.constraint(equalTo: resultView.bottomAnchor, constant: 255),
-//            button.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 16),
-//            button.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -16),
-//        ])
 
     }
 }
 
-//extension SampleViewController: SmartSpectraDelegate {
-//    func passProcessedView(_ view: SmartSpectraResultView) {
-//        self.resultView = view
-//    }
-//}
