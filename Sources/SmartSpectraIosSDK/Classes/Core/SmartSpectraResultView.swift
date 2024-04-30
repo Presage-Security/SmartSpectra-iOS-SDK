@@ -12,23 +12,14 @@ import Combine
 
 @available(iOS 13.0, *)
 final public class SmartSpectraResultView: UIView {
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "        Pulse Rate        Breathing Rate"
-        label.textColor = UIColor(red: 0.00, green: 0.00, blue: 0.00, alpha: 0.38)
-        label.textAlignment = .center
-        label.font = UIFont.boldSystemFont(ofSize: 20.0)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
     private let resultLabel: UILabel = {
         let label = UILabel()
+        label.textColor = UIColor(red: 0.00, green: 0.00, blue: 0.00, alpha: 0.38)
         label.textAlignment = .center
-        label.text = "---  /  ---"
-        label.font = UIFont.boldSystemFont(ofSize: 30.0)
+        label.numberOfLines = 0
+        label.text = "Your data was insufficient for an accurate measurement. Please move to a better-lit location, hold still, and try again. For more guidance, see the tutorial in the dropdown menu of the 'i' icon next to 'Checkup.'"
+        label.text = "No Results\n..."
+        label.font = UIFont.boldSystemFont(ofSize: 25.0)
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -53,7 +44,7 @@ final public class SmartSpectraResultView: UIView {
     }
 
     private func setupUI() {
-        addSubview(titleLabel)
+//        addSubview(titleLabel)
         addSubview(resultLabel)
 
         layer.borderWidth = 0.0
@@ -65,18 +56,13 @@ final public class SmartSpectraResultView: UIView {
     }
     
     private func setupConstraints() {
+        let padding: CGFloat = 10 // Adjust padding size as needed
+
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: topAnchor),
-            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
-            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
-            titleLabel.heightAnchor.constraint(equalToConstant: 30),
-
-            resultLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor),
-            resultLabel.leadingAnchor.constraint(equalTo: leadingAnchor),
-            resultLabel.trailingAnchor.constraint(equalTo: trailingAnchor),
-            resultLabel.heightAnchor.constraint(equalToConstant: 30),
-
-            resultLabel.bottomAnchor.constraint(equalTo: bottomAnchor)
+            resultLabel.topAnchor.constraint(equalTo: topAnchor, constant: padding),
+            resultLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
+            resultLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
+            resultLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -padding)
         ])
     }
 

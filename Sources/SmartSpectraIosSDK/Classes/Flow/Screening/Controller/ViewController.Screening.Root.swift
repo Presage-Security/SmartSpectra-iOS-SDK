@@ -11,6 +11,7 @@ import AVFoundation
 import AVFoundation
 import UIKit
 import PresagePreprocessing
+import Network
 
 enum state {
     case disable, ready, running
@@ -184,6 +185,36 @@ public extension ViewController.Screening {
             setupUIComponents()
             core.delegate = self
             core.start()
+            
+            // Check for internet connection
+            monitorInternetConnection()
+        }
+        
+        private func monitorInternetConnection() {
+            let monitor = NWPathMonitor()
+            let queue = DispatchQueue(label: "InternetConnectionMonitor")
+
+            monitor.pathUpdateHandler = { path in
+                if path.status == .satisfied {
+                    print("We're connected!")
+                    // You can perform tasks that require internet here
+                } else {
+                    print("No connection.")
+                    DispatchQueue.main.async {
+                        self.showNoInternetAlert()
+                    }
+                }
+            }
+
+            monitor.start(queue: queue)
+        }
+        
+        private func showNoInternetAlert() {
+            let alert = UIAlertController(title: "No Internet Connection", message: "Please check your internet connection and try again.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
+                self.backButtonPressed() // Assuming you want to use your custom back function
+            }))
+            self.present(alert, animated: true, completion: nil)
         }
         
         public override func viewDidLayoutSubviews() {
