@@ -6,6 +6,8 @@ import Combine
 // Expose the data provider through your SDK's API
 public class SmartSpectraIosSDK: ObservableObject {
     public static let shared = SmartSpectraIosSDK()
+    @Published public var pulsePleth: [(time: Double, value: Double)] = []
+    @Published public var breathingPleth: [(time: Double, value: Double)] = []
     @Published public var strictPulseRate: Double = 0
     @Published public var strictBreathingRate: Double = 0
     @Published public var jsonMetrics: [String: Any]?
@@ -17,6 +19,20 @@ public class SmartSpectraIosSDK: ObservableObject {
     }
     
     private func observeSharedDataManager() {
+        
+        SharedDataManager.shared.$pulsePleth
+            .receive(on: DispatchQueue.main)
+            .sink { pulsePleth in
+                self.pulsePleth = pulsePleth
+            }
+            .store(in: &cancellables)
+        
+        SharedDataManager.shared.$breathingPleth
+            .receive(on: DispatchQueue.main)
+            .sink { breathingPleth in
+                self.breathingPleth = breathingPleth
+            }
+            .store(in: &cancellables)
         
         SharedDataManager.shared.$jsonMetrics
             .receive(on: DispatchQueue.main)

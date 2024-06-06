@@ -146,8 +146,8 @@ public extension ViewController.Screening {
             guard AVCaptureDevice.default(for: .video) != nil else {
                 return
             }
-            let videoAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: .video)
-            if videoAuthorizationStatus == .authorized {
+            switch AVCaptureDevice.authorizationStatus(for: .video) {
+            case .authorized:
                 if let frontCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
                     do {
                         videoDeviceInput = try AVCaptureDeviceInput(device: frontCamera)
@@ -165,8 +165,38 @@ public extension ViewController.Screening {
                 } else {
                     Logger.log("Front camera not available.")
                 }
-            } else {
-                Logger.log("Camera access not authorized.")
+            case .notDetermined:
+                AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+                    guard let self = self else {
+                        Logger.log("Unable to gain camera access.")
+                        return
+                    }
+                    if granted {
+                        if let frontCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
+                            do {
+                                videoDeviceInput = try AVCaptureDeviceInput(device: frontCamera)
+                                if captureSession.canAddInput(videoDeviceInput) {
+                                    captureSession.addInput(videoDeviceInput)
+                                }
+                                
+                                photoOutput = AVCapturePhotoOutput()
+                                if captureSession.canAddOutput(photoOutput) {
+                                    captureSession.addOutput(photoOutput)
+                                }
+                            } catch {
+                                Logger.log("Error setting up front camera input: \(error.localizedDescription)")
+                            }
+                        } else {
+                            Logger.log("Front camera not available.")
+                        }
+                    } else {
+                        Logger.log("Camera access was not granted.")
+                    }
+                }
+            case .restricted, .denied:
+                Logger.log("Camera access is restricted or denied.")
+            @unknown default:
+                Logger.log("Camera access is restricted or denied.")
             }
         }
         
@@ -230,6 +260,7 @@ public extension ViewController.Screening {
         public override func viewWillDisappear(_ animated: Bool) {
             super.viewWillDisappear(animated)
             UIScreen.main.brightness = originalBrightness
+            core.stop()
         }
         
         private func setTitleView() {

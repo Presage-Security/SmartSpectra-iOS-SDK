@@ -63,6 +63,12 @@ extension Service {
                     completion(.failure(Errors.AuthError))
                     preconditionFailure(Errors.AuthError.localizedDescription)
                 } 
+                
+                if statusCode == 201 {
+                    print("GOT A 201 RESPONSE ***************")
+                    completion(.success(Data(count: 0)))
+                    return
+                }
 
                 guard let responseData = data else {
                     completion(.failure(Errors.emptyData))

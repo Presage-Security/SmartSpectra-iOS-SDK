@@ -92,12 +92,22 @@ extension Service.Repository {
                 var rrValue: Double = 0.0
 
                 // Make the network request to generate upload URLs
-                service.postData(from: url, body: data) { result in
+                service.postData(from: url, body: data) { [weak self] result in
+                    guard let self = self else {return}
+                    print("POST DATA RESULT", result)
+                    
                     switch result {
                     case .success(let responseData):
+                        guard !responseData.isEmpty else {
+                            completion(.success(nil))
+                            return
+                        }
+                        
                         do {
                             if let json = try JSONSerialization.jsonObject(with: responseData, options: []) as? [String: Any] {
-                                SharedDataManager.shared.jsonMetrics = json
+                                DispatchQueue.main.async {
+                                    SharedDataManager.shared.jsonMetrics = json
+                                }
                                 let id = json["id"] as? String
                                 let breath = json["breath"] as? [String: [String: Any]]
                                 let breathingRates = breath?["rr"] as? [String: [String: Any]]
@@ -105,12 +115,22 @@ extension Service.Repository {
                                 let pulseRates = pulse?["hr"] as? [String: [String: Any]]
 
                                 let uploadDate = json["upload_date"] as? String
-                                
-
-                                
-
-                                let arrayPulseRatesValues = (pulseRates?.values.map { $0["value"] as? Double }.compactMap { $0 })
                             
+                                let arrayPulseRatesValues = (pulseRates?.values.map { $0["value"] as? Double }.compactMap { $0 })
+                                
+                                if let pulsePleth = pulse?["hr_trace"] as? [String: [String: Double]] {
+                                    // The data might not be in increasing time order so sort it on time
+                                    let timeHrPairs = pulsePleth.compactMap { key, value -> (time: Double, value: Double)? in
+                                        if let time = Double(key), let value = value["value"] {
+                                            return (time, value)
+                                        }
+                                        return nil  // Skip invalid entries rather than substituting with (0.0, 0.0)
+                                    }.sorted(by: { $0.time < $1.time })  // Sort by time
+                                    DispatchQueue.main.async {
+                                        SharedDataManager.shared.pulsePleth = timeHrPairs
+                                    }
+                                }
+                                
                                 var strictPulseRate: Double?
                                 if let arrayHrValuesUnwrapped = arrayPulseRatesValues,
                                 arrayHrValuesUnwrapped.count > 0 {
@@ -122,7 +142,20 @@ extension Service.Repository {
                                 }
                                 
                                 let arrayBreathRateValues = (breathingRates?.values.map { $0["value"] as? Double }.compactMap { $0 })
-                            
+
+                                if let breathingPleth = breath?["rr_trace"] as? [String: [String: Double]] {
+                                    // The data might not be in increasing time order so sort it on time
+                                    let timeHrPairs = breathingPleth.compactMap { key, value -> (time: Double, value: Double)? in
+                                        if let time = Double(key), let value = value["value"] {
+                                            return (time, value)
+                                        }
+                                        return nil  // Skip invalid entries rather than substituting with (0.0, 0.0)
+                                    }.sorted(by: { $0.time < $1.time })  // Sort by time
+                                    // plot the data
+                                    DispatchQueue.main.async {
+                                        SharedDataManager.shared.breathingPleth = timeHrPairs
+                                    }
+                                }
                                 
                                 var strictBreathingRate: Double?
                                 if let arrayRRValuesUnwrapped = arrayBreathRateValues,
@@ -157,9 +190,6 @@ extension Service.Repository {
                         } catch {
                             completion(.failure(Service.Network.Errors.emptyData))
                         }
-                     
-                        
-
                     case .failure(let error):
                         completion(.failure(error))
                     }
@@ -169,6 +199,7 @@ extension Service.Repository {
             }
 
         }
+        
         func completeDataUpload(num: Int, UrlsCount: Int, vid_id: String, upload_id: String, parts: inout [[String : Any]], completion: @escaping (Result<Bool, Error>) -> Void) {
             guard let _ = URL(string: Service.Routes.Base.URL.rawValue),
                   let url = URL(string: Service.Routes.Base.URL.rawValue + Service.Routes.URLs.Complete.rawValue) else {

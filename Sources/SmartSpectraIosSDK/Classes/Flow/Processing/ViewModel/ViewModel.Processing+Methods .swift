@@ -69,16 +69,10 @@ extension ViewModel.Processing {
         
         dispatchGroup.notify(queue: .main) {
             if !hasError {
-                self.handleLoopCompletion(num: num, urlsCount: urls.count, vid_id: vid_id, upload_id: upload_id, with: &parts) { state in
+                self.handleLoopCompletion(num: num, urlsCount: urls.count, vid_id: vid_id, upload_id: upload_id, with: &parts) { [weak self] state in
                     if state {
-                        // This code block will execute after a delay of 10 seconds
-                        DispatchQueue.global().asyncAfter(deadline: .now() + 10) {
-                            self.callRetrieveData(id: vid_id) { (state, model) in
-                                self.delegate?.processingCompleted(model)
-                            }
-                            
-                        }
-
+                        // Start the initial API call
+                        self?.repollAPI(id: vid_id)
                     }
                 }
             } else {
@@ -88,8 +82,20 @@ extension ViewModel.Processing {
         }
     }
 
-
-
+    func repollAPI(id: String) {
+        DispatchQueue.global().async { [weak self] in
+            self?.callRetrieveData(id: id) { (state, model) in
+                if model == nil {
+                    // Repoll the API after 0.2 seconds
+                    DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) {
+                        self?.repollAPI(id: id)
+                    }
+                } else {
+                    self?.delegate?.processingCompleted(model)
+                }
+            }
+        }
+    }
 
     /// Retrieves the chunk data from the preprocessed data based on the tracker and chunk size.
     /// - Parameters:
@@ -138,7 +144,7 @@ extension ViewModel.Processing {
         Logger.log("********")
         Logger.log("**** Retrieving Data ****")
         Logger.log("********")
-        let body  = Model.Request.RetrieveData.init(id: id)
+        let body = Model.Request.RetrieveData.init(id: id)
         repository.retrieveData(body: body) { result in
             switch result {
             case .success(let response):
@@ -147,7 +153,6 @@ extension ViewModel.Processing {
                 completion(false, nil)
                 Logger.log("ERROR UPLOADING THE CHUNK", error.localizedDescription)
                 self.delegate?.processingCompleted(nil)
-
             }
         }
     }
@@ -225,7 +230,7 @@ extension ViewModel.Processing {
                 // Handle error
                 Logger.log("Error generating upload URLs: \(error)")
                 self.delegate?.processingCompleted(nil)
-
+                
             }
         }
     }

@@ -180,7 +180,6 @@ final public class SmartSpectraButton: UIButton {
         }
     }
     
-    
     private func checkInternetConnectivity(completion: @escaping (Bool) -> Void) {
         guard let url = URL(string: "https://www.google.com") else {
             completion(false)
@@ -284,7 +283,7 @@ final public class SmartSpectraButton: UIButton {
         let strictBreathingRateInt = Int(strictBreathingRate)
         // Determine the display text for pulse and breathing rates
         if strictPulseRateInt == 0 || strictBreathingRateInt == 0 {
-                let message = "Your data was insufficient for an accurate measurement. Please move to a better-lit location, hold still, and try again. For more guidance, see the tutorial in the dropdown menu of the 'i' icon next to 'Checkup.'"
+                let message = "Your data was insufficient for an accurate measurement. Please move to a better-lit location, hold still, and try again. For more guidance, see the tutorial in the dropdown menu of the 'i' icon next to 'Checkup.'\nPlease contact support in the case of an api key issue."
                 view.updateResultLabel(with: message)
                 NotificationCenter.default.post(name: Notification.Name("SmartSpecteraUpdateResultView"), object: "\(message)")
             } else {
@@ -463,10 +462,31 @@ class ImagePageViewController: UIPageViewController, UIPageViewControllerDataSou
         // Constraints for descriptionLabel to align it at the bottom
         let descriptionLabelHeight: CGFloat = 150 // Increase the height as necessary to fit the text
         NSLayoutConstraint.activate([
-            descriptionLabel.leadingAnchor.constraint(equalTo: vc.view.leadingAnchor),
-            descriptionLabel.trailingAnchor.constraint(equalTo: vc.view.trailingAnchor),
+            descriptionLabel.leadingAnchor.constraint(equalTo: vc.view.leadingAnchor, constant: 20),
+            descriptionLabel.trailingAnchor.constraint(equalTo: vc.view.trailingAnchor, constant: -20),
             descriptionLabel.bottomAnchor.constraint(equalTo: vc.view.safeAreaLayoutGuide.bottomAnchor), // Align to the bottom safe area
             descriptionLabel.heightAnchor.constraint(equalToConstant: descriptionLabelHeight)
+        ])
+        
+        let rightArrowImageView = UIImageView()
+        rightArrowImageView.contentMode = .scaleAspectFit
+        rightArrowImageView.tintColor = .systemBlue
+        rightArrowImageView.isOpaque = true
+        rightArrowImageView.translatesAutoresizingMaskIntoConstraints = false
+        vc.view.addSubview(rightArrowImageView)
+        
+        // Load the right arrow for swipe
+        if let rightArrow = UIImage(systemName: imageName == "tutorial_image7" ? "arrowshape.down.fill" : "arrowshape.right.fill") {
+            rightArrowImageView.image = rightArrow
+        } else {
+            print("Failed ot load arrow image.")
+        }
+        
+        NSLayoutConstraint.activate([
+            rightArrowImageView.heightAnchor.constraint(equalToConstant: 50),
+            rightArrowImageView.widthAnchor.constraint(equalToConstant: 50),
+            rightArrowImageView.trailingAnchor.constraint(equalTo: vc.view.trailingAnchor, constant: -20),
+            rightArrowImageView.bottomAnchor.constraint(equalTo: vc.view.bottomAnchor, constant: -20)
         ])
 
         return vc

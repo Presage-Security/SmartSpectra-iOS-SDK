@@ -29,7 +29,7 @@ extension ViewController.Processing.Root: ProcessingDelegate {
                 }
             } else {
                 self?.animationView.checkmarkView.shape = .cross
-                self?.statusLabel.text = "Analyzing data has faced an error"
+                self?.statusLabel.text = "Analyzing data has faced an error. Please contact support in the case of an api key issue."
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                     self?.onDataPassed?(model)
                     self?.navigationController?.popToRootViewController(animated: true)

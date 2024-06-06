@@ -61,7 +61,6 @@ public class SampleViewController: UIViewController {
             resultView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 16),
             resultView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -16),
         ])
-
     }
 }
 
