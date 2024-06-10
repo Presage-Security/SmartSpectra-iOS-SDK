@@ -55,7 +55,7 @@ extension ViewController.Screening.Root: PresagePreprocessingDelegate {
         }
 
         if buttonState == .ready || buttonState == .running {
-            if counter < 30 {
+            if counter < 60 {
                 buttonState = .running
             } else {
                 buttonState = .ready
