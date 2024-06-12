@@ -8,6 +8,8 @@ on:
 jobs:
   call_webhook:
     runs-on: ubuntu-latest
+    environment:
+      name: main
     steps:
       - name: Call Webhook
         env:
