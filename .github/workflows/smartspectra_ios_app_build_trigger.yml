@@ -10,4 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Call Webhook
-        run: curl -X POST -H 'Content-Type: application/json' {{ secrets.SMARTSPECTRA_IOS_APP_TRIGGER_URL }}
+        env:
+          WEBHOOK_URL: ${{ secrets.SMARTSPECTRA_IOS_APP_TRIGGER_URL }}
+        run: curl -X POST -H 'Content-Type: application/json' $WEBHOOK_URL
