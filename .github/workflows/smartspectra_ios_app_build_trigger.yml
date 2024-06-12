@@ -12,4 +12,5 @@ jobs:
       - name: Call Webhook
         env:
           WEBHOOK_URL: ${{ secrets.SMARTSPECTRA_IOS_APP_TRIGGER_URL }}
-        run: curl -X POST -H 'Content-Type: application/json' $WEBHOOK_URL
+        run: |
+            curl -X POST -H 'Content-Type: application/json' "$WEBHOOK_URL"
