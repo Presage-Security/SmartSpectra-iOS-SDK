@@ -1,0 +1,18 @@
+name: Call Webhook on Main Branch
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  call_webhook:
+    runs-on: ubuntu-latest
+    environment:
+      name: main
+    steps:
+      - name: Call Webhook
+        env:
+          WEBHOOK_URL: ${{ secrets.SMARTSPECTRA_IOS_APP_TRIGGER_URL }}
+        run: |
+            curl -X POST -H 'Content-Type: application/json' $WEBHOOK_URL

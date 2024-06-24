@@ -118,6 +118,7 @@ extension Service.Repository {
                                 let uploadDate = json["upload_date"] as? String
                                 let version = json["version"] as? String
 
+
                                 let arrayPulseRatesValues = (pulseRates?.values.map { $0["value"] as? Double }.compactMap { $0 })
 
                                 if let pulsePleth = pulse?["hr_trace"] as? [String: [String: Double]] {
@@ -145,6 +146,7 @@ extension Service.Repository {
                                         SharedDataManager.shared.hrv = timeHrvPairs
                                     }
                                 }
+
 
                                 if let hrWithConfidence = pulse?["hr"] as? [String: [String: Double]] {
                                     // The data might not be in increasing time order so sort it on time
@@ -287,8 +289,6 @@ extension Service.Repository {
                                         SharedDataManager.shared.strictBreathingRate = strictBreathingRate ?? 0.0
                                     }
                                 }
-                                
-                                
 
                                 // Print other values
                                 DispatchQueue.main.async {
