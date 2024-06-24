@@ -23,9 +23,14 @@ class SharedDataManager: ObservableObject {
     @Published public var amplitude: [(time: Double, value: Double)] = []
     @Published public var baseline: [(time: Double, value: Double)] = []
     @Published public var phasic: [(time: Double, value: Double)] = []
+    @Published public var hrv: [(time: Double, value: Double)] = []
+    @Published public var uploadDate: String?
+    @Published public var version: String?
+    @Published public var userID: String?
     @Published var strictPulseRate: Double = 0.0
     @Published var strictBreathingRate: Double = 0.0
     @Published var jsonMetrics: [String: Any]?
+   
 
     @Published var resultView : SmartSpectraResultView = {
         let res = SmartSpectraResultView()

@@ -116,6 +116,8 @@ extension Service.Repository {
                                 let pressure = json["pressure"] as? [String: [String: Any]]
 
                                 let uploadDate = json["upload_date"] as? String
+                                let version = json["version"] as? String
+
 
                                 let arrayPulseRatesValues = (pulseRates?.values.map { $0["value"] as? Double }.compactMap { $0 })
 
@@ -131,6 +133,20 @@ extension Service.Repository {
                                         SharedDataManager.shared.pulsePleth = timeHrPairs
                                     }
                                 }
+                                
+                                if let hrv = pulse?["hrv"] as? [String: [String: Double]] {
+                                    // The data might not be in increasing time order so sort it on time
+                                    let timeHrvPairs = hrv.compactMap { key, value -> (time: Double, value: Double)? in
+                                        if let time = Double(key), let value = value["value"] {
+                                            return (time, value)
+                                        }
+                                        return nil  // Skip invalid entries rather than substituting with (0.0, 0.0)
+                                    }.sorted(by: { $0.time < $1.time })  // Sort by time
+                                    DispatchQueue.main.async {
+                                        SharedDataManager.shared.hrv = timeHrvPairs
+                                    }
+                                }
+
 
                                 if let hrWithConfidence = pulse?["hr"] as? [String: [String: Double]] {
                                     // The data might not be in increasing time order so sort it on time
@@ -275,6 +291,15 @@ extension Service.Repository {
                                 }
 
                                 // Print other values
+                                DispatchQueue.main.async {
+                                    SharedDataManager.shared.uploadDate = uploadDate
+                                }
+                                DispatchQueue.main.async {
+                                    SharedDataManager.shared.version = version
+                                }
+                                DispatchQueue.main.async {
+                                    SharedDataManager.shared.userID = id
+                                }
                                 debugPrint("ID: \(id ?? "")")
                                 debugPrint("Upload Date: \(uploadDate ?? "")")
                                 if  let id = id
