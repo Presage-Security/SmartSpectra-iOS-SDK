@@ -33,14 +33,22 @@ extension ViewController.Screening.Root: PresagePreprocessingDelegate {
         
     }
     
-    public func statusCodeChanged(_ tracker: PresagePreprocessing!, statusCode: StatusCode) {
+    public func errorHappened(_ errorCode: Int32) {
         if counter == 0 {
             return
         }
-        
-        showToast(msg: tracker.getStatusHint(statusCode))
-        
-        while statusCode != StatusCode.ok {
+        switch errorCode {
+        case 1: showToast(msg: "No face detected")
+        case 2: showToast(msg: "Only one face is permitted")
+        case 3: showToast(msg: "Move closer to camera")
+        case 4: showToast(msg: "Center face in view")
+        case 5: showToast(msg: "Increase light on face")
+        case 6: showToast(msg: "Decrease light on face")
+        case 7: showToast(msg: "Place more of chest in view")
+        default:
+            showToast(msg: "Hold still and record")
+        }
+        while errorCode != 0 {
             buttonState = .disable
 
             return
