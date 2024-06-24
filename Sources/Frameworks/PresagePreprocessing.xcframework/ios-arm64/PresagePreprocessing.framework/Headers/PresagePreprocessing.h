@@ -1,13 +1,19 @@
 //
 //  PresagePreprocessing.h
-//  PresagePreprocessing
+//  PresagePreprocessing Objective C++ Binding Layer
 //
-//  Created by Yuki Yamato on 2021/05/05 in form of MPIrisTracker / MPIrisTrackerDelegate.
-//
+//  Credits:
+//  Inspired by MPIrisTracker / MPIrisTrackerDelegate code by Yuki Yamato on 2021/05/05.
 //
 
 #import <Foundation/Foundation.h>
 #import <CoreVideo/CoreVideo.h>
+#ifdef PRESAGE_PREPROCESSING_BUILD
+#import "modules/messages/Status.pbobjc.h"
+#else
+#import "Status.pbobjc.h"
+#endif
+
 
 @class MPLandmark;
 @class PresagePreprocessing;
@@ -21,7 +27,9 @@
 - (void)frameDidUpdate:(PresagePreprocessing *)tracker
   didOutputPixelBuffer:(CVPixelBufferRef)pixelBuffer;
 
-- (void)errorHappened:(int)errorCode;
+- (void)statusCodeChanged:(PresagePreprocessing *)tracker
+               statusCode:(StatusCode)statusCode;
+
 - (void)timerChanged:(double)timerValue;
 - (void)receiveJsonData:(NSDictionary *)jsonData;
 
@@ -33,6 +41,7 @@
 - (void)start;
 - (void)stop;
 - (void)buttonStateChangedInFramework:(BOOL)isRecording;
+- (NSString *)getStatusHint:(StatusCode)statusCode;
 
 @property(weak, nonatomic) id <PresagePreprocessingDelegate> delegate;
 @end

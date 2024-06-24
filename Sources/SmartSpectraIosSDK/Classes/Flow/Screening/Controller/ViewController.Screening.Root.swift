@@ -94,7 +94,7 @@ public extension ViewController.Screening {
 
         internal lazy var counterView: UILabel = {
             let res = UILabel()
-            res.text  = "60"
+            res.text  = "30"
             res.font = UIFont.systemFont(ofSize: 40)
             res.backgroundColor = UIColor(red: 0.94, green: 0.34, blue: 0.36, alpha: 1.00)
             res.layer.cornerRadius = 30
@@ -124,7 +124,7 @@ public extension ViewController.Screening {
         var showWalkThrough: Bool = false
         internal var recordButtonOptionObject: Model.Option.Button.Record?
         internal var timer: Timer?
-        internal var counter: Int = 60 {
+        internal var counter: Int = 30 {
             didSet {
                 DispatchQueue.main.async {
                     self.counterView.text = "\(self.counter)"
