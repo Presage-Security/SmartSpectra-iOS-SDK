@@ -44,22 +44,16 @@ public class SmartSpectraIosSDK: ObservableObject {
         SharedDataManager.shared.$hrValues
             .receive(on: DispatchQueue.main)
             .sink { hrValues in
-<<<<<<< HEAD
                 self.pulseValues = hrValues
-=======
-                self.hrValues = hrValues
->>>>>>> main
+
             }
             .store(in: &cancellables)
 
         SharedDataManager.shared.$hrConfidence
             .receive(on: DispatchQueue.main)
             .sink { hrConfidence in
-<<<<<<< HEAD
                 self.pulseConfidence = hrConfidence
-=======
-                self.hrConfidence = hrConfidence
->>>>>>> main
+
             }
             .store(in: &cancellables)
 
@@ -73,22 +67,15 @@ public class SmartSpectraIosSDK: ObservableObject {
         SharedDataManager.shared.$rrValues
             .receive(on: DispatchQueue.main)
             .sink { rrValues in
-<<<<<<< HEAD
+
                 self.breathingValues = rrValues
-=======
-                self.rrValues = rrValues
->>>>>>> main
             }
             .store(in: &cancellables)
 
         SharedDataManager.shared.$rrConfidence
             .receive(on: DispatchQueue.main)
             .sink { rrConfidence in
-<<<<<<< HEAD
                 self.breathingConfidence = rrConfidence
-=======
-                self.rrConfidence = rrConfidence
->>>>>>> main
             }
             .store(in: &cancellables)
 
@@ -116,22 +103,16 @@ public class SmartSpectraIosSDK: ObservableObject {
         SharedDataManager.shared.$amplitude
             .receive(on: DispatchQueue.main)
             .sink { amplitude in
-<<<<<<< HEAD
                 self.breathingAmplitude = amplitude
-=======
-                self.amplitude = amplitude
->>>>>>> main
+
             }
             .store(in: &cancellables)
 
         SharedDataManager.shared.$baseline
             .receive(on: DispatchQueue.main)
             .sink { baseline in
-<<<<<<< HEAD
                 self.breathingBaseline = baseline
-=======
-                self.baseline = baseline
->>>>>>> main
+
             }
             .store(in: &cancellables)
 
@@ -141,7 +122,6 @@ public class SmartSpectraIosSDK: ObservableObject {
                 self.phasic = phasic
             }
             .store(in: &cancellables)
-<<<<<<< HEAD
         
         SharedDataManager.shared.$hrv
             .receive(on: DispatchQueue.main)
@@ -170,8 +150,6 @@ public class SmartSpectraIosSDK: ObservableObject {
                 self.userID = userID
             }
             .store(in: &cancellables)
-=======
->>>>>>> main
 
         SharedDataManager.shared.$jsonMetrics
             .receive(on: DispatchQueue.main)
