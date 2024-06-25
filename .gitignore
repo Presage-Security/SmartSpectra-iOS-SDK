@@ -1,3 +1,4 @@
 Pods/*
 **.DS_Store**
 **.xcworkspace
+Sources/Frameworks/PresagePreprocessing.xcframework/ios-arm64/PresagePreprocessing.framework/libpose_landmark_gpu.lo
