@@ -31,6 +31,9 @@ public struct ViewController {
     public struct Agreement {
         //Empty initialize
     }
+    public struct PrivacyPolicy {
+        //Empty initialize
+    }
 }
 struct ViewModel {
     //Empty initialize

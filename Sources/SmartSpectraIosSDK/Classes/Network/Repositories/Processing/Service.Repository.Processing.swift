@@ -14,6 +14,8 @@ import Foundation
 
 extension Service.Repository {
     class Processing: PreSignedUrlsProtocol {
+        
+        private var sdk = SmartSpectraIosSDK.shared
 
         /**
          The network manager used for making network requests.
@@ -108,6 +110,24 @@ extension Service.Repository {
                                 DispatchQueue.main.async {
                                     SharedDataManager.shared.jsonMetrics = json
                                 }
+                                
+                                // Save JSON to file if saveJson is true
+                                
+                                if sdk.configuration.saveJson {
+                                    if let jsonData = try? JSONSerialization.data(withJSONObject: json, options: .prettyPrinted) {
+                                        let fileName = "api_response.json"
+                                        if let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+                                            let fileURL = documentDirectory.appendingPathComponent(fileName)
+                                            do {
+                                                try jsonData.write(to: fileURL)
+                                                print("JSON data saved to: \(fileURL)")
+                                            } catch {
+                                                print("Failed to save JSON data: \(error)")
+                                            }
+                                        }
+                                    }
+                                }
+                                
                                 let id = json["id"] as? String
                                 let breath = json["breath"] as? [String: [String: Any]]
                                 let breathingRates = breath?["rr"] as? [String: [String: Any]]
@@ -117,7 +137,6 @@ extension Service.Repository {
 
                                 let uploadDate = json["upload_date"] as? String
                                 let version = json["version"] as? String
-
 
                                 let arrayPulseRatesValues = (pulseRates?.values.map { $0["value"] as? Double }.compactMap { $0 })
 
@@ -146,7 +165,6 @@ extension Service.Repository {
                                         SharedDataManager.shared.hrv = timeHrvPairs
                                     }
                                 }
-
 
                                 if let hrWithConfidence = pulse?["hr"] as? [String: [String: Double]] {
                                     // The data might not be in increasing time order so sort it on time
@@ -215,10 +233,10 @@ extension Service.Repository {
                                     }
                                 }
 
-                                if let apnea = breath?["apnea"] as? [String: [String: Double]] {
+                                if let apnea = breath?["apnea"] as? [String: [String: Bool]] {
                                     // The data might not be in increasing time order so sort it on time
-                                    let timeApnea = apnea.compactMap { key, value -> (time: Double, value: Double)? in
-                                        if let time = Double(key), let value = value["value"] as? Double {
+                                    let timeApnea = apnea.compactMap { key, value -> (time: Double, value: Bool)? in
+                                        if let time = Double(key), let value = value["value"] as? Bool {
                                             return (time, value)
                                         }
                                         return nil  // Skip invalid entries rather than substituting with (0.0, 0.0)
@@ -289,6 +307,8 @@ extension Service.Repository {
                                         SharedDataManager.shared.strictBreathingRate = strictBreathingRate ?? 0.0
                                     }
                                 }
+                                
+                                
 
                                 // Print other values
                                 DispatchQueue.main.async {

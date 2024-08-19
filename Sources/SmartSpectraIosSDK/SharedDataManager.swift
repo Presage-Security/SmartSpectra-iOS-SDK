@@ -18,7 +18,7 @@ class SharedDataManager: ObservableObject {
     @Published public var rrValues: [(time: Double, value: Double)] = []
     @Published public var rrConfidence: [(time: Double, value: Double)] = []
     @Published public var rrl: [(time: Double, value: Double)] = []
-    @Published public var apnea: [(time: Double, value: Double)] = []
+    @Published public var apnea: [(time: Double, value: Bool)] = []
     @Published public var ie: [(time: Double, value: Double)] = []
     @Published public var amplitude: [(time: Double, value: Double)] = []
     @Published public var baseline: [(time: Double, value: Double)] = []
@@ -31,15 +31,11 @@ class SharedDataManager: ObservableObject {
     @Published var strictBreathingRate: Double = 0.0
     @Published var jsonMetrics: [String: Any]?
    
-
-    @Published var resultView : SmartSpectraResultView = {
-        let res = SmartSpectraResultView()
-        res.translatesAutoresizingMaskIntoConstraints = false
-        return res
-    }()
-
-//    @Published var resultView: SmartSpectraResultView = SmartSpectraResultView()
+    @Published var resultText: String = "No Results\n..."
 
     private init() {} // Private initializer to ensure singleton usage
+    
+    func updateResultText(with message: String) {
+        self.resultText = message
+    }
 }
-

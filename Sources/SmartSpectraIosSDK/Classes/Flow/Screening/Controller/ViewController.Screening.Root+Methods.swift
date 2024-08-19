@@ -17,6 +17,7 @@ extension ViewController.Screening.Root {
         addBorderView()
         addRecordButton()
         addTimerView()
+        addFPSLabel()
     }
     
     internal func addRecordButton() {
@@ -83,13 +84,28 @@ extension ViewController.Screening.Root {
         
     }
 
+    internal func addFPSLabel() {
+        self.view.addSubview(fpsLabel)
+        
+        NSLayoutConstraint.activate([
+            fpsLabel.heightAnchor.constraint(equalToConstant: 30),
+            fpsLabel.widthAnchor.constraint(equalToConstant: 80),
+            fpsLabel.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: -40),
+            fpsLabel.centerYAnchor.constraint(equalTo: recordButton.centerYAnchor)
+        ])
+    }
+
     @objc private func recordButtonTapped() {
         if buttonState == .ready {
             startRecording()
             buttonState = .running
+            isRecording = true
         } else if buttonState == .running {
             stopRecording()
             buttonState = .ready
+            isRecording = false
+        } else {
+            Logger.log("Recording button is disabled.")
         }
     }
 
@@ -180,6 +196,7 @@ extension ViewController.Screening.Root {
     }
     
     func stopCamera() {
+        isRecording = false
         DispatchQueue.global(qos: .userInitiated).async {
             DispatchQueue.main.async {
                 self.counterView.removeFromSuperview()

@@ -9,6 +9,7 @@ import Foundation
 import UIKit
 
 extension ViewController.Screening.Root {
+    // TODO: This seems unnecessary and performance intensive. Should use a static TextView and update the text and visibility instead
     func showToast(msg: String) {
         DispatchQueue.main.async {
             if self.toastView == nil {
