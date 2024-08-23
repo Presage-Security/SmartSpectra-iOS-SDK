@@ -25,12 +25,15 @@ public class SmartSpectraIosSDK: ObservableObject {
     @Published public var version: String?
     @Published public var uploadDate: String?
     @Published public var userID: String?
+    @Published public var meshPoints: [(x: Int16, y: Int16)] = []
 
     private var cancellables = Set<AnyCancellable>()
     internal var configuration: SmartSpectraConfig
+    internal var apiKey: String
 
-    private init(configuration: SmartSpectraConfig = SmartSpectraConfig()) {
+    private init(apiKey: String = "", configuration: SmartSpectraConfig = SmartSpectraConfig()) {
         self.configuration = configuration
+        self.apiKey = apiKey
         observeSharedDataManager()
     }
 
@@ -41,6 +44,11 @@ public class SmartSpectraIosSDK: ObservableObject {
     public func setShowFps(_ showFps: Bool) {
         configuration.showFps = showFps
     }
+    
+    internal func setApiKey(_ apiKey: String) {
+        self.apiKey = apiKey
+    }
+    
 
     private func observeSharedDataManager() {
 
@@ -159,7 +167,6 @@ public class SmartSpectraIosSDK: ObservableObject {
         SharedDataManager.shared.$jsonMetrics
             .receive(on: DispatchQueue.main)
             .sink { String in
-//                print(value)
                 self.jsonMetrics = String
             }
             .store(in: &cancellables)
@@ -167,7 +174,6 @@ public class SmartSpectraIosSDK: ObservableObject {
         SharedDataManager.shared.$strictPulseRate
             .receive(on: DispatchQueue.main)
             .sink { value in
-//                print(value)
                 self.strictPulseRate = value
             }
             .store(in: &cancellables)
@@ -175,8 +181,14 @@ public class SmartSpectraIosSDK: ObservableObject {
         SharedDataManager.shared.$strictBreathingRate
             .receive(on: DispatchQueue.main)
             .sink { value in
-//                print(value)
                 self.strictBreathingRate = value
+            }
+            .store(in: &cancellables)
+
+        SharedDataManager.shared.$meshPoints
+            .receive(on: DispatchQueue.main)
+            .sink { meshPoints in
+                self.meshPoints = meshPoints
             }
             .store(in: &cancellables)
     }

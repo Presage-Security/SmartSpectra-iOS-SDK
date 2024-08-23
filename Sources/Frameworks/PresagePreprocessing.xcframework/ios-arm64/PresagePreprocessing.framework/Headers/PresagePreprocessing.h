@@ -31,12 +31,15 @@
                statusCode:(StatusCode)statusCode;
 
 - (void)timerChanged:(double)timerValue;
+
+- (void)receiveDenseFacemeshPoints:(NSArray<NSNumber *> *)points;
+
 - (void)receiveJsonData:(NSDictionary *)jsonData;
 
 @end
 
 @interface PresagePreprocessing : NSObject
-- (instancetype)init;
+- (instancetype)init:(NSString* _Nonnull)apiKey;
 
 - (void)start:(double)spotDuration;
 - (void)stop;

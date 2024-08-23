@@ -77,6 +77,16 @@ extension ViewController.Screening.Root: PresagePreprocessingDelegate {
         }
     }
     
+    public func receiveDenseFacemeshPoints(_ points: [NSNumber]) {
+        // Convert and unflatten the array into tuples of (Int16, Int16)
+        let unflattenedPoints = stride(from: 0, to: points.count, by: 2).map { (points[$0].int16Value, points[$0 + 1].int16Value) }
+
+        // Asynchronously update shared data manager
+        DispatchQueue.main.async {
+            SharedDataManager.shared.meshPoints = unflattenedPoints
+        }
+    }
+    
     public func receiveJsonData(_ jsonData: [AnyHashable : Any]!)  {
         guard var _tmpJSON = jsonData else { fatalError("Can Not Have Null")}
         var existingSettings = jsonData["setting"] as? [String: Any] ?? [:]

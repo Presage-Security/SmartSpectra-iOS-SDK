@@ -30,6 +30,7 @@ class SharedDataManager: ObservableObject {
     @Published var strictPulseRate: Double = 0.0
     @Published var strictBreathingRate: Double = 0.0
     @Published var jsonMetrics: [String: Any]?
+    @Published var meshPoints: [(x: Int16, y: Int16)] = []
    
     @Published var resultText: String = "No Results\n..."
 
