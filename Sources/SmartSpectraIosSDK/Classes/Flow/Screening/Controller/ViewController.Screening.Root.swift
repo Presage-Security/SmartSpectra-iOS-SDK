@@ -13,35 +13,30 @@ import UIKit
 import PresagePreprocessing
 import Network
 
-enum state {
+enum ButtonState {
     case disable, ready, running
 }
 public extension ViewController.Screening {
     class Root: UIViewController {
+
         //Screen Brightness
         private var originalBrightness: CGFloat = 0.0
         
         //MARK: - UI Components
         var core: PresagePreprocessing = PresagePreprocessing()
-        var buttonState: state = .disable {
+        var sdkConfig = SmartSpectraIosSDK.shared.configuration
+        
+        var buttonState: ButtonState = .disable {
             didSet {
-                if buttonState == .disable {
-                    DispatchQueue.main.async {
+                DispatchQueue.main.async {
+                    switch self.buttonState {
+                    case .disable:
                         self.recordButton.backgroundColor = .lightGray
-                        self.recordButton.setTitle((self.recordButtonOptionObject?.title) ?? "Record", for: .normal)
-
-                    }
-
-                } else if buttonState == .ready {
-                    DispatchQueue.main.async {
+                        self.recordButton.setTitle("Record", for: .normal)
+                    case .ready:
                         self.recordButton.backgroundColor = self.recordButtonOptionObject?.backgroundColor
-                        self.recordButton.setTitle((self.recordButtonOptionObject?.title) ?? "Record", for: .normal)
-
-                    }
-
-                } else {
-                    DispatchQueue.main.async {
-                        
+                        self.recordButton.setTitle("Record", for: .normal)
+                    case .running:
                         self.recordButton.backgroundColor = self.recordButtonOptionObject?.backgroundColor
                         self.recordButton.setTitle("Stop", for: .normal)
                     }
@@ -94,7 +89,7 @@ public extension ViewController.Screening {
 
         internal lazy var counterView: UILabel = {
             let res = UILabel()
-            res.text  = "30"
+            res.text  = "\(sdkConfig.spotDuration)"
             res.font = UIFont.systemFont(ofSize: 40)
             res.backgroundColor = UIColor(red: 0.94, green: 0.34, blue: 0.36, alpha: 1.00)
             res.layer.cornerRadius = 30
@@ -124,13 +119,24 @@ public extension ViewController.Screening {
         var showWalkThrough: Bool = false
         internal var recordButtonOptionObject: Model.Option.Button.Record?
         internal var timer: Timer?
-        internal var counter: Int = 30 {
+        internal var counter: Int = 0 {
             didSet {
                 DispatchQueue.main.async {
                     self.counterView.text = "\(self.counter)"
                 }
             }
         }
+        internal var isRecording = false
+        var lastStatusCode: StatusCode = .processingNotStarted
+        var lastTimestamp: Int?
+        var fpsLabel: UILabel = {
+            let label = UILabel()
+            label.text = "FPS: 0"
+            label.font = UIFont.systemFont(ofSize: 16)
+            label.textColor = UIColor(red: 0.94, green: 0.34, blue: 0.36, alpha: 1.00)
+            label.translatesAutoresizingMaskIntoConstraints = false
+            return label
+        }()
         var jsonData: Data!
         internal var toastView: Common.View.Toast?
         deinit {
@@ -138,9 +144,14 @@ public extension ViewController.Screening {
             Logger.log("ViewController.Screening is De-inited!")
         }
 
+        var fpsValues: [Int] = []
+        let movingAveragePeriod = 10
+
         init(viewModel: ViewModel.Screening) {
             self.viewModel = viewModel
+            self.counter = Int(sdkConfig.spotDuration)
             self.recordButtonOptionObject = self.viewModel.getCustomProperty()
+            self.fpsLabel.isHidden = !sdkConfig.showFps
             super.init(nibName: nil, bundle: nil)
             captureSession = AVCaptureSession()
             guard AVCaptureDevice.default(for: .video) != nil else {
@@ -214,7 +225,7 @@ public extension ViewController.Screening {
             setTitleView()
             setupUIComponents()
             core.delegate = self
-            core.start()
+            core.start(sdkConfig.spotDuration)
             
             // Check for internet connection
             monitorInternetConnection()

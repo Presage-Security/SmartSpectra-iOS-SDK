@@ -2,46 +2,36 @@
 //  SmartSpectraButtonView.swift
 //  Sample Pressage App
 //
-//  Created by Bill Vivino on 4/4/24.
+//  Created by Ashraful Islam on 8/14/24.
 //
 
 import Foundation
 import SwiftUI
 import PresagePreprocessing
 
-public struct SmartSpectraButtonView: UIViewRepresentable {
-    public typealias UIViewType = UIView
-    var apiKey: String
+@available(iOS 15.0, *)
+public struct SmartSpectraButtonView: View {
+    @ObservedObject private var viewModel: SmartSpectraButtonViewModel
+    var height: CGFloat = 56 // set to match android layout
     
     // Provide a public initializer that accepts an API key
     public init(apiKey: String) {
-        self.apiKey = apiKey
+        self.viewModel = SmartSpectraButtonViewModel(apiKey: apiKey)
     }
     
-    public func makeUIView(context: Context) -> UIView {
-        let buttonView = UIView()
-        let button = SmartSpectraButton.init(apiKey: apiKey)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.delegate = context.coordinator
-        buttonView.addSubview(button)
-        NSLayoutConstraint.activate([
-            button.leadingAnchor.constraint(equalTo: buttonView.leadingAnchor, constant: 16),
-            button.trailingAnchor.constraint(equalTo: buttonView.trailingAnchor, constant: -16),
-        ])
-        return buttonView
-    }
-    
-    public func updateUIView(_ uiView: UIView, context: Context) {}
-    
-    public func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
-    
-    public class Coordinator: NSObject, SmartSpectraDelegate {
-        public func passProcessedView(_ view: SmartSpectraResultView) {
-            DispatchQueue.main.async {
-                SharedDataManager.shared.resultView = view
+    public var body: some View {
+        HStack {
+            SmartSpectraCheckupButton {
+                viewModel.smartSpectraButtonTapped()
             }
+            Spacer()
+            SmartSpectraInfoButton {
+                viewModel.showActionSheet()
+            }
+            .frame(maxWidth: height)
         }
+        .frame(maxWidth: 300, minHeight: height, maxHeight: height)
+        .background(Color(red: 0.94, green: 0.34, blue: 0.36))
+        .clipShape(RoundedRectangle(cornerRadius: height / 2))
     }
 }

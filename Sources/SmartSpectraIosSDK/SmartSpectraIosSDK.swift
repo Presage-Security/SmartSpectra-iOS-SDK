@@ -13,7 +13,7 @@ public class SmartSpectraIosSDK: ObservableObject {
     @Published public var breathingValues: [(time: Double, value: Double)] = []
     @Published public var breathingConfidence: [(time: Double, value: Double)] = []
     @Published public var rrl: [(time: Double, value: Double)] = []
-    @Published public var apnea: [(time: Double, value: Double)] = []
+    @Published public var apnea: [(time: Double, value: Bool)] = []
     @Published public var ie: [(time: Double, value: Double)] = []
     @Published public var breathingAmplitude: [(time: Double, value: Double)] = []
     @Published public var breathingBaseline: [(time: Double, value: Double)] = []
@@ -27,9 +27,19 @@ public class SmartSpectraIosSDK: ObservableObject {
     @Published public var userID: String?
 
     private var cancellables = Set<AnyCancellable>()
+    internal var configuration: SmartSpectraConfig
 
-    public init() {
+    private init(configuration: SmartSpectraConfig = SmartSpectraConfig()) {
+        self.configuration = configuration
         observeSharedDataManager()
+    }
+
+    public func setSpotDuration(_ duration: Double) {
+        configuration.spotDuration = duration
+    }
+
+    public func setShowFps(_ showFps: Bool) {
+        configuration.showFps = showFps
     }
 
     private func observeSharedDataManager() {
@@ -45,7 +55,6 @@ public class SmartSpectraIosSDK: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { hrValues in
                 self.pulseValues = hrValues
-
             }
             .store(in: &cancellables)
 
@@ -53,7 +62,6 @@ public class SmartSpectraIosSDK: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { hrConfidence in
                 self.pulseConfidence = hrConfidence
-
             }
             .store(in: &cancellables)
 
@@ -67,7 +75,6 @@ public class SmartSpectraIosSDK: ObservableObject {
         SharedDataManager.shared.$rrValues
             .receive(on: DispatchQueue.main)
             .sink { rrValues in
-
                 self.breathingValues = rrValues
             }
             .store(in: &cancellables)
@@ -104,7 +111,6 @@ public class SmartSpectraIosSDK: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { amplitude in
                 self.breathingAmplitude = amplitude
-
             }
             .store(in: &cancellables)
 
@@ -112,7 +118,6 @@ public class SmartSpectraIosSDK: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { baseline in
                 self.breathingBaseline = baseline
-
             }
             .store(in: &cancellables)
 

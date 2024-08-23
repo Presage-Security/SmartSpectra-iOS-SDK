@@ -1,0 +1,15 @@
+
+ÑPreprocessingCpuINPUT_VIDEO:input_videoRECORDING_ON:start_button_preIS_VALID:is_valid"&RECORDING_ON_AND_IMAGE_IN:start_button")THROTTLED_VIDEO:throttled_input_video_big"OUTPUT_VIDEO:output_video")MULTI_FACE_LANDMARKS:multi_face_landmarks"-ROIS_FROM_LANDMARKS:face_rects_from_landmarks"ROI_AVERAGES:average_roi"FACEMESH_POINTS:facemesh_pts"TRACKED_POINTS:tracked_points"!TRACKED_POINT_LABELS:point_labels"TRACKING_RESET:reset*ENABLE_BP:enable_phasic_bp
+®SpotValidationCalculator#IMAGE_CPU:throttled_input_video_bigLANDMARKS:multi_face_landmarks-ROIS_FROM_LANDMARKS:face_rects_from_landmarksSTART_BUTTON:start_button"TIME_LEFT:time_left_s"IS_VALID:is_valid"$IS_COLLECTION_DONE:is_recording_done"STATUS_CODE:status_code*TIME_TOTAL:spot_duration_s
+ŠSpotPreprocessedJsonCalculatorIS_VALID:is_valid READY_TO_WRITE:is_recording_doneAVG_ROI:average_roiNORM_LANDMARKS:facemesh_ptsTRACKED_POINTS:tracked_pointsPOINT_LABELS:point_labelsRESET:reset"WRITE_DONE:write_done"JSON_DATA:json_data"BLUE_TOOTH:blue_toothZw
+SyncSetInputStreamHandlerZŠ•²ÒT
+
+READY_TO_WRITE
+
+AVG_ROI
+NORM_LANDMARKS
+%
+TRACKED_POINTS
+POINT_LABELS
+RESETRinput_videoRstart_button_prezoutput_videozstatus_codeztime_left_szis_recording_donezis_validz
+blue_toothz	json_data‚spot_duration_s‚enable_phasic_bp

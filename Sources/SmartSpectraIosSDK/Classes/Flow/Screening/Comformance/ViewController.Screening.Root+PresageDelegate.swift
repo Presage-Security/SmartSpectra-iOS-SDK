@@ -33,35 +33,40 @@ extension ViewController.Screening.Root: PresagePreprocessingDelegate {
         
     }
     
-    public func errorHappened(_ errorCode: Int32) {
-        if counter == 0 {
-            return
-        }
-        switch errorCode {
-        case 1: showToast(msg: "No face detected")
-        case 2: showToast(msg: "Only one face is permitted")
-        case 3: showToast(msg: "Move closer to camera")
-        case 4: showToast(msg: "Center face in view")
-        case 5: showToast(msg: "Increase light on face")
-        case 6: showToast(msg: "Decrease light on face")
-        case 7: showToast(msg: "Place more of chest in view")
-        default:
-            showToast(msg: "Hold still and record")
-        }
-        while errorCode != 0 {
-            buttonState = .disable
-
-            return
-        }
-
-        if buttonState == .ready || buttonState == .running {
-            if counter < 30 {
-                buttonState = .running
+    public func statusCodeChanged(_ tracker: PresagePreprocessing!, statusCode: StatusCode) {
+        
+        if statusCode != lastStatusCode {
+            lastStatusCode = statusCode
+            showToast(msg: tracker.getStatusHint(statusCode))
+            
+            // update button state
+            if statusCode != StatusCode.ok {
+                buttonState = .disable
             } else {
-                buttonState = .ready
+                buttonState = isRecording ? .running : .ready
             }
-        } else {
-            buttonState = .ready
+        }
+        
+        if sdkConfig.showFps {
+            // update fps
+            let currentTime = Int(Date().timeIntervalSince1970 * 1000)
+            
+            if let lastTimestamp = lastTimestamp {
+                let deltaTime = currentTime - lastTimestamp
+                
+                fpsValues.append(deltaTime)
+                if fpsValues.count > movingAveragePeriod {
+                    fpsValues.removeFirst()
+                }
+                
+                let averageDeltaTime = Double(fpsValues.reduce(0, +)) / Double(fpsValues.count)
+                let movingAverageFPS = Int(round(1000 / averageDeltaTime))
+                
+                DispatchQueue.main.async {
+                    self.fpsLabel.text = "FPS: \(movingAverageFPS)"
+                }
+            }
+            lastTimestamp = currentTime
         }
 
     }
@@ -96,18 +101,24 @@ extension ViewController.Screening.Root: PresagePreprocessingDelegate {
         }
         
 //        FOR JSON SAVING
-//        let fileName = "output.json"
-//        guard let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-//                    print("Failed to access document directory")
-//                    return
-//                }
-//        let fileURL = documentDirectory.appendingPathComponent(fileName)
-//        do {
-//                    try _jsonData.write(to: fileURL, options: .atomic)
-//                    print("JSON saved to \(fileURL)")
-//                } catch {
-//                    print("Failed to write JSON data to file: \(error)")
-//                }
+        //TODO: JSON data has too many precision for rr_points. Needs to be limited to 3
+        if sdkConfig.saveJson {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyyMMdd_HHmmss"
+            let timestamp = dateFormatter.string(from: Date())
+            let fileName = "output_\(timestamp).json"
+            guard let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+                print("Failed to access document directory")
+                return
+            }
+            let fileURL = documentDirectory.appendingPathComponent(fileName)
+            do {
+                try _jsonData.write(to: fileURL, options: .atomic)
+                print("JSON saved to \(fileURL)")
+            } catch {
+                print("Failed to write JSON data to file: \(error)")
+            }
+        }
 //        END FOR JSON SAVING
         
         self.jsonData = _jsonData
