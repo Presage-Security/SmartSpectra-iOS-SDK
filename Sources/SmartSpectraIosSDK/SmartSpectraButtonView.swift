@@ -17,6 +17,7 @@ public struct SmartSpectraButtonView: View {
     // Provide a public initializer that accepts an API key
     public init(apiKey: String) {
         self.viewModel = SmartSpectraButtonViewModel(apiKey: apiKey)
+        SmartSpectraIosSDK.shared.setApiKey(apiKey)
     }
     
     public var body: some View {

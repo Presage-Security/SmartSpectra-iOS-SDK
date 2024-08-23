@@ -23,7 +23,7 @@ public extension ViewController.Screening {
         private var originalBrightness: CGFloat = 0.0
         
         //MARK: - UI Components
-        var core: PresagePreprocessing = PresagePreprocessing()
+        var core: PresagePreprocessing = PresagePreprocessing(SmartSpectraIosSDK.shared.apiKey)
         var sdkConfig = SmartSpectraIosSDK.shared.configuration
         
         var buttonState: ButtonState = .disable {
