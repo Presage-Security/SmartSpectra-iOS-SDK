@@ -1,14 +1,17 @@
 import UIKit
 
+@available(iOS 15.0, *)
 class SmartSpectra {
-    internal let apiKey: String
+    
+    func ScreeningPage(recordButton: Model.Option.Button.Record? = nil) -> ViewController.Screening.Root {
+        return createScreeningPage(option: recordButton)
+    }
 
-    init(apiKey: String) {
-        guard !apiKey.isEmpty else {
-            fatalError("SHOULD PROVIDE AN API KEY TO USE SMART SPECTRA") // Check if the provided API key is empty. If empty, terminate the program with a fatal error message.
-        }
+    internal func createScreeningPage(option: Model.Option.Button.Record? = nil) -> ViewController.Screening.Root {
         
-        self.apiKey = apiKey // Store the provided API key in the apiKey constant.
-        Service.Keys.API_KEY.setAPIKey(apiKey) // Set the API key in the Service.Keys.API_KEY enum.
+        let propertyObject = RecordButtonPropertyObject.init(recordButton: option)
+        let vm = ViewModel.Screening(propertyProvider: propertyObject)
+        let vc = ViewController.Screening.Root(viewModel: vm)
+        return vc
     }
 }

@@ -9,16 +9,25 @@ import Foundation
 import SwiftUI
 
 struct SmartSpectraResultView: View {
-    var resultText: String
+    @Binding var resultText: String
+    @Binding var resultErrorText: String
 
     var body: some View {
-        HStack {
-            Spacer()
-            Text(resultText)
-                .foregroundColor(.gray)
-                .font(.system(size: 25, weight: .bold))
-                .multilineTextAlignment(.center)
-            Spacer()
+        VStack {
+            HStack {
+                Spacer()
+                Text(resultText)
+                    .foregroundColor(.gray)
+                    .font(.system(size: 25, weight: .bold))
+                    .multilineTextAlignment(.center)
+                Spacer()
+            }
+            if !resultErrorText.isEmpty {
+                Text(resultErrorText)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.red)
+                    .padding(.vertical, 10)
+            }
         }
         .padding(.vertical, 10)
         .background(Color.white)
@@ -33,5 +42,5 @@ struct SmartSpectraResultView: View {
 }
 
 #Preview {
-    SmartSpectraResultView(resultText: "Test\nTest")
+    SmartSpectraResultView(resultText: .constant("Test\nTest"), resultErrorText: .constant("Error message"))
 }

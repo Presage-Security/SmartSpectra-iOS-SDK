@@ -10,16 +10,10 @@ import SwiftUI
 import PresagePreprocessing
 
 @available(iOS 15.0, *)
-public struct SmartSpectraButtonView: View {
-    @ObservedObject private var viewModel: SmartSpectraButtonViewModel
+internal struct SmartSpectraButtonView: View {
+    @ObservedObject private var viewModel = SmartSpectraButtonViewModel()
     var height: CGFloat = 56 // set to match android layout
-    
-    // Provide a public initializer that accepts an API key
-    public init(apiKey: String) {
-        self.viewModel = SmartSpectraButtonViewModel(apiKey: apiKey)
-        SmartSpectraIosSDK.shared.setApiKey(apiKey)
-    }
-    
+
     public var body: some View {
         HStack {
             SmartSpectraCheckupButton {

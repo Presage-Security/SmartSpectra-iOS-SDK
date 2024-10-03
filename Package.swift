@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "SmartSpectraIosSDK",
     platforms: [
-        .iOS(.v13) // This line specifies that your package requires iOS 13 or newer
+        .iOS(.v15)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
@@ -14,17 +14,24 @@ let package = Package(
             name: "SmartSpectraIosSDK",
             targets: ["SmartSpectraIosSDK"]),
     ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-protobuf.git", from: "1.28.1"),
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "SmartSpectraIosSDK",
-            dependencies: ["PresagePreprocessing"],
+            dependencies: [
+                "PresagePreprocessing",
+                .product(name: "SwiftProtobuf", package: "swift-protobuf")
+                ],
             path: "Sources/SmartSpectraIosSDK",
             resources: [.process("Resources")]
         ),
         .binaryTarget(
             name: "PresagePreprocessing",
-            path: "Sources/Frameworks/PresagePreprocessing.xcframework")
+            path: "Sources/Frameworks/PresagePreprocessing.xcframework"
+        )
     ]
 )

@@ -9,17 +9,15 @@ import Foundation
 import UIKit
 import Combine
 import SwiftUI
-
-/// A custom button with predefined appearance and behavior for SmartSpectra SDK.
 @available(iOS 15.0, *)
+/// A custom button with predefined appearance and behavior for SmartSpectra SDK.
 final class SmartSpectraButtonViewModel: ObservableObject {
     
-    @ObservedObject var sharedDataManager = SharedDataManager.shared
+    internal let sdk = SmartSpectraIosSDK.shared
     public let responseSubject = PassthroughSubject<String, Never>()
-    private let apiKey: String
 
-    public init(apiKey: String, height: CGFloat = 56) {
-        self.apiKey = apiKey
+    public init() {
+        // Empty public initializer
     }
     
     private func showTutorialAndAgreementIfNecessary(completion: (() -> Void)? = nil) {
@@ -174,15 +172,10 @@ final class SmartSpectraButtonViewModel: ObservableObject {
             guard let self = self else { return }
             
             // Add code here to initialize the SmartSpectra SDK
-            // For example, you can use the apiKey property to pass the API key to the SDK initialization process.
             // Once the SDK is initialized, you can proceed with presenting the screening page.
             if UserDefaults.standard.bool(forKey: "HasAgreedToTerms")  && UserDefaults.standard.bool(forKey: "HasAgreedToPrivacyPolicy") {
-                let smartSpectra = SmartSpectra(apiKey: self.apiKey)
-                let sPage = smartSpectra.ScreeningPage(recordButton: Model.Option.Button.Record.init(backgroundColor: UIColor(red: 0.94, green: 0.34, blue: 0.36, alpha: 1.00), titleColor: .white, borderColor: UIColor(red: 0.94, green: 0.34, blue: 0.36, alpha: 1.00), title: "Record"))
+                let sPage = SmartSpectra().ScreeningPage(recordButton: Model.Option.Button.Record.init(backgroundColor: UIColor(red: 0.94, green: 0.34, blue: 0.36, alpha: 1.00), titleColor: .white, borderColor: UIColor(red: 0.94, green: 0.34, blue: 0.36, alpha: 1.00), title: "Record"))
                 
-                sPage.onDataPassed = {[weak self] data in
-                    self?.sendDataToApp(model: data)
-                }
                 // Assuming you have access to the view controller where the button is added
                 let viewController = self.findViewController()
                 // Check if the current view controller is embedded in a navigation controller
@@ -196,24 +189,6 @@ final class SmartSpectraButtonViewModel: ObservableObject {
                 }
             }
         }
-    }
-    
-    internal func sendDataToApp(model: Model.Response.ProcessedData?) {
-        let strictPulseRate = round(model?.strictPulseRate ?? 0.0)
-        let strictBreathingRate = round(model?.strictBreathingRate ?? 0.0)
-        let strictPulseRateInt = Int(strictPulseRate)
-        let strictBreathingRateInt = Int(strictBreathingRate)
-        // Determine the display text for pulse and breathing rates
-        if strictPulseRateInt == 0 || strictBreathingRateInt == 0 {
-                let message = "Your data was insufficient for an accurate measurement. Please move to a better-lit location, hold still, and try again. For more guidance, see the tutorial in the dropdown menu of the 'i' icon next to 'Checkup.'\nPlease contact support in the case of an api key issue."
-                sharedDataManager.updateResultText(with: message)
-            } else {
-                // If both readings are valid, format the results with BPM
-                let pulseRateText = "Pulse Rate: \(strictPulseRateInt) BPM"
-                let breathingRateText = "Breathing Rate: \(strictBreathingRateInt) BPM"
-                sharedDataManager.updateResultText(with: "\(breathingRateText)\n\(pulseRateText)")
-            }
-        
     }
 
     /// Helper method to find the view controller in the view hierarchy.

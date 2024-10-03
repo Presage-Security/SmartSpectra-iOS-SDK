@@ -8,7 +8,6 @@
 import Foundation
 import UIKit
 import AVFoundation
-import AVFoundation
 import UIKit
 import PresagePreprocessing
 import Network
@@ -16,6 +15,13 @@ import Network
 enum ButtonState {
     case disable, ready, running
 }
+
+enum PresageProcessingStatus {
+    case idle
+    case processing
+    case processed
+}
+@available(iOS 15.0, *)
 public extension ViewController.Screening {
     class Root: UIViewController {
 
@@ -25,6 +31,29 @@ public extension ViewController.Screening {
         //MARK: - UI Components
         var core: PresagePreprocessing = PresagePreprocessing(SmartSpectraIosSDK.shared.apiKey)
         var sdkConfig = SmartSpectraIosSDK.shared.configuration
+        
+        var processingStatus = PresageProcessingStatus.idle {
+            didSet {
+                DispatchQueue.main.async {
+                    switch self.processingStatus {
+                    case .idle:
+                        print("Idle")
+                    case .processing:
+                        print("Presage Processing")
+                        self.moveToProcessing()
+                    case .processed:
+                        print("Done processing")
+                        // TODO: 9/23/27 Does not handling failure case from the sdk comm yet
+                        let vc = ViewController.Processing.Root()
+                        vc.processingCompleted(completed: true)
+                        self.dismiss(animated: true)
+                        self.processingStatus = .idle
+                        //TODO: 9/23/24 Might need to make it conditional for continuous processing
+                        self.core.stop()
+                    }
+                }
+            }
+        }
         
         var buttonState: ButtonState = .disable {
             didSet {
@@ -89,7 +118,7 @@ public extension ViewController.Screening {
 
         internal lazy var counterView: UILabel = {
             let res = UILabel()
-            res.text  = "\(sdkConfig.spotDuration)"
+            res.text  = "\(Int(sdkConfig.spotDuration))"
             res.font = UIFont.systemFont(ofSize: 40)
             res.backgroundColor = UIColor(red: 0.94, green: 0.34, blue: 0.36, alpha: 1.00)
             res.layer.cornerRadius = 30
@@ -112,17 +141,16 @@ public extension ViewController.Screening {
         let videoDataOutput = AVCaptureVideoDataOutput()
         let videoDataOutputQueue = DispatchQueue(label: "com.example.videoDataOutputQueue")
         var previewLayer: AVCaptureVideoPreviewLayer?
-        var onDataPassed: ((Model.Response.ProcessedData?) -> Void)?
         var onRecordButtonStateChange: ((Bool) -> Void)?
 
         let viewModel: ViewModel.Screening
         var showWalkThrough: Bool = false
         internal var recordButtonOptionObject: Model.Option.Button.Record?
         internal var timer: Timer?
-        internal var counter: Int = 0 {
+        internal var counter: Double = 0.0 {
             didSet {
                 DispatchQueue.main.async {
-                    self.counterView.text = "\(self.counter)"
+                    self.counterView.text = "\(Int(self.counter))"
                 }
             }
         }
@@ -137,7 +165,7 @@ public extension ViewController.Screening {
             label.translatesAutoresizingMaskIntoConstraints = false
             return label
         }()
-        var jsonData: Data!
+        
         internal var toastView: Common.View.Toast?
         deinit {
             UIApplication.shared.isIdleTimerDisabled = false
@@ -149,7 +177,7 @@ public extension ViewController.Screening {
 
         init(viewModel: ViewModel.Screening) {
             self.viewModel = viewModel
-            self.counter = Int(sdkConfig.spotDuration)
+            self.counter = sdkConfig.spotDuration
             self.recordButtonOptionObject = self.viewModel.getCustomProperty()
             self.fpsLabel.isHidden = !sdkConfig.showFps
             super.init(nibName: nil, bundle: nil)
@@ -232,6 +260,7 @@ public extension ViewController.Screening {
         }
         
         private func monitorInternetConnection() {
+            // TODO: 9/16/24 Seems unnecessary with sdk's network comm moving inside the graph
             let monitor = NWPathMonitor()
             let queue = DispatchQueue(label: "InternetConnectionMonitor")
 
@@ -271,7 +300,6 @@ public extension ViewController.Screening {
         public override func viewWillDisappear(_ animated: Bool) {
             super.viewWillDisappear(animated)
             UIScreen.main.brightness = originalBrightness
-            core.stop()
         }
         
         private func setTitleView() {
@@ -296,15 +324,16 @@ public extension ViewController.Screening {
         }
         
         @objc func backButtonPressed() {
-            stopRecording()
-                DispatchQueue.main.async {
-                    self.stopRecording()
-                    self.dismiss(animated: true, completion: nil)
-                }
+            print("back button is pressed")
+            DispatchQueue.main.async {
+                self.stopRecording()
+                self.core.stop()
+                self.dismiss(animated: true, completion: nil)
+            }
         }
     }
 }
-
+@available(iOS 15.0, *)
 extension ViewController.Screening.Root: UIGestureRecognizerDelegate {
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true

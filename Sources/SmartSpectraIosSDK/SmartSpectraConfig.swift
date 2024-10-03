@@ -1,7 +1,7 @@
 import Foundation
 
-public class SmartSpectraConfig {
-    public var spotDuration: Double {
+internal class SmartSpectraConfig {
+    internal var spotDuration: Double {
         didSet {
             if spotDuration < 20.0 {
                 spotDuration = 20.0
@@ -12,10 +12,10 @@ public class SmartSpectraConfig {
             }
         }
     }
-    public var showFps: Bool
-    public var saveJson: Bool
+    internal var showFps: Bool
+    internal var saveJson: Bool
 
-    public init(spotDuration: Double = 30.0, showFps: Bool = false, saveJson: Bool = false) {
+    internal init(spotDuration: Double = 30.0, showFps: Bool = false, saveJson: Bool = false) {
         self.spotDuration = spotDuration
         self.showFps = showFps
         self.saveJson = saveJson

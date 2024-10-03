@@ -9,7 +9,9 @@ import Foundation
 import UIKit
 import PresagePreprocessing
 
+@available(iOS 15.0, *)
 extension ViewController.Screening.Root: PresagePreprocessingDelegate {
+    
     private func imageFromSampleBuffer(_ pixelBuffer: CVPixelBuffer) -> CGImage? {
         let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
         let imageRect = CGRect(x: 0, y: 0, width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetHeight(pixelBuffer))
@@ -71,9 +73,27 @@ extension ViewController.Screening.Root: PresagePreprocessingDelegate {
 
     }
     
+    public func metricsBufferChanged(_ tracker: PresagePreprocessing!, serializedBytes: Data) {
+        do {
+            // Deserialize the data directly into the Swift Protobuf object
+            let metricsBuffer = try MetricsBuffer(serializedBytes: serializedBytes)
+            print("Received metrics buffer. metadata: \(String(describing: metricsBuffer.metadata))")
+            // update metrics buffer
+            DispatchQueue.main.async {
+                SmartSpectraIosSDK.shared.metricsBuffer = metricsBuffer
+            }
+            processingStatus = .processed
+        } catch {
+            print("Failed to deserialize MetricsBuffer: \(error.localizedDescription)")
+        }
+    }
+    
     public func timerChanged(_ timerValue: Double) {
-        if counter != 0 {
-            counter = Int(timerValue)
+        if counter != timerValue {
+            counter = timerValue
+            if counter == 0.0 && processingStatus == .idle {
+                processingStatus = .processing
+            }
         }
     }
     
@@ -83,60 +103,8 @@ extension ViewController.Screening.Root: PresagePreprocessingDelegate {
 
         // Asynchronously update shared data manager
         DispatchQueue.main.async {
-            SharedDataManager.shared.meshPoints = unflattenedPoints
+            SmartSpectraIosSDK.shared.meshPoints = unflattenedPoints
         }
     }
-    
-    public func receiveJsonData(_ jsonData: [AnyHashable : Any]!)  {
-        guard var _tmpJSON = jsonData else { fatalError("Can Not Have Null")}
-        var existingSettings = jsonData["setting"] as? [String: Any] ?? [:]
-
-        // Get the device's OS version
-        let osVersion = UIDevice.current.systemVersion
-        
-        // Get the device's model
-        let deviceModel = UIDevice.current.model
-        
-        // Add "OS_Version" and "Phone_Model" to the existing "setting" dictionary
-        existingSettings["OS_Version"] = osVersion
-        existingSettings["Phone_Model"] = deviceModel
-        
-        // Update the "setting" key with the combined dictionary
-        _tmpJSON["setting"] = existingSettings
-        
-
-        // Encode the updated dictionary back to JSON data
-        guard  let _jsonData = try? JSONSerialization.data(withJSONObject: _tmpJSON, options: []) else {
-            fatalError("JSON DATA HAS SOME ISSUE")
-        }
-        
-//        FOR JSON SAVING
-        //TODO: JSON data has too many precision for rr_points. Needs to be limited to 3
-        if sdkConfig.saveJson {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyyMMdd_HHmmss"
-            let timestamp = dateFormatter.string(from: Date())
-            let fileName = "output_\(timestamp).json"
-            guard let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
-                print("Failed to access document directory")
-                return
-            }
-            let fileURL = documentDirectory.appendingPathComponent(fileName)
-            do {
-                try _jsonData.write(to: fileURL, options: .atomic)
-                print("JSON saved to \(fileURL)")
-            } catch {
-                print("Failed to write JSON data to file: \(error)")
-            }
-        }
-//        END FOR JSON SAVING
-        
-        self.jsonData = _jsonData
-        if self.counter == 0 {
-            self.moveToProcessing()
-        }
-
-    }
-    
     
 }
