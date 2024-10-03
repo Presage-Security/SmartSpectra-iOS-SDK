@@ -10,7 +10,7 @@ import AVFoundation
 import CoreImage
 import UIKit
 import Vision
-
+@available(iOS 15.0, *)
 extension ViewController.Screening.Root: AVCaptureVideoDataOutputSampleBufferDelegate {
     
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {

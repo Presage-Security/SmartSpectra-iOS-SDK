@@ -12,19 +12,12 @@ import UIKit
 
 
 
-@available(iOS 13.0, *)
+@available(iOS 15.0, *)
 extension ViewController.Processing {
     /**
      The `Root` class is the view controller responsible for managing the processing screen.
      */
     class Root: UIViewController {
-        var onDataPassed: ((Model.Response.ProcessedData?) -> Void)?
-        var jsonData: Data! {
-            didSet {
-                viewModel.jsonData = jsonData
-            }
-        }
-        let viewModel = ViewModel.Processing() // View model for processing tasks
         // UI elements
         let progressView = UIProgressView(progressViewStyle: .default)
         lazy var statusLabel: UILabel = {
@@ -77,20 +70,6 @@ extension ViewController.Processing {
             // Perform the animations
             animationView.animateCheckmark()
             animationView.animateHorizontalLine()
-
-            viewModel.delegate = self
-            startProcessing()
-        }
-
-        /**
-         Starts the processing task.
-
-         This method initiates the processing task by calling the `startProcessing()` method of the view model.
-         */
-        private func startProcessing() {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0, execute: {
-                self.viewModel.sendProcessedDataToAPI()
-            })
         }
     }
 }

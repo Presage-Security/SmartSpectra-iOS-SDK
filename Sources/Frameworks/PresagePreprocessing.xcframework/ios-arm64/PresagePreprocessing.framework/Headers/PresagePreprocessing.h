@@ -14,8 +14,6 @@
 #import "Status.pbobjc.h"
 #endif
 
-
-@class MPLandmark;
 @class PresagePreprocessing;
 
 @protocol PresagePreprocessingDelegate <NSObject>
@@ -30,11 +28,12 @@
 - (void)statusCodeChanged:(PresagePreprocessing *)tracker
                statusCode:(StatusCode)statusCode;
 
+- (void)metricsBufferChanged:(PresagePreprocessing *)tracker
+               serializedBytes:(NSData *)data;
+
 - (void)timerChanged:(double)timerValue;
 
 - (void)receiveDenseFacemeshPoints:(NSArray<NSNumber *> *)points;
-
-- (void)receiveJsonData:(NSDictionary *)jsonData;
 
 @end
 
@@ -44,13 +43,7 @@
 - (void)start:(double)spotDuration;
 - (void)stop;
 - (void)buttonStateChangedInFramework:(BOOL)isRecording;
-- (NSString *)getStatusHint:(StatusCode)statusCode;
+- (NSString * _Nonnull)getStatusHint:(StatusCode)statusCode;
 
 @property(weak, nonatomic) id <PresagePreprocessingDelegate> delegate;
-@end
-
-@interface MPLandmark : NSObject
-@property(nonatomic, readonly) float x;
-@property(nonatomic, readonly) float y;
-@property(nonatomic, readonly) float z;
 @end

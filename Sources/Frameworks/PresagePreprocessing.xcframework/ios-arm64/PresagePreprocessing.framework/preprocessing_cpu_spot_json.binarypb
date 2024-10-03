@@ -1,5 +1,5 @@
 
-èPreprocessingCpuINPUT_VIDEO:input_videoRECORDING_ON:start_button_preIS_VALID:is_valid"&RECORDING_ON_AND_IMAGE_IN:start_button")THROTTLED_VIDEO:throttled_input_video_big"OUTPUT_VIDEO:output_video")MULTI_FACE_LANDMARKS:multi_face_landmarks"-ROIS_FROM_LANDMARKS:face_rects_from_landmarks"ROI_AVERAGES:average_roi"FACEMESH_POINTS:facemesh_pts"+DENSE_FACEMESH_POINTS:dense_facemesh_points"TRACKED_POINTS:tracked_points"!TRACKED_POINT_LABELS:point_labels"TRACKING_RESET:reset*ENABLE_BP:enable_phasic_bp*API_KEY:api_key
+∞PreprocessingCpuINPUT_VIDEO:input_videoRECORDING_ON:start_button_preIS_VALID:is_valid"&RECORDING_ON_AND_IMAGE_IN:start_button")THROTTLED_VIDEO:throttled_input_video_big"OUTPUT_VIDEO:output_video")MULTI_FACE_LANDMARKS:multi_face_landmarks"-ROIS_FROM_LANDMARKS:face_rects_from_landmarks"ROI_AVERAGES:average_roi"FACEMESH_POINTS:facemesh_pts"+DENSE_FACEMESH_POINTS:dense_facemesh_points"TRACKED_POINTS:tracked_points"!TRACKED_POINT_LABELS:point_labels"TRACKING_RESET:reset*ENABLE_BP:enable_phasic_bp*API_KEY:api_key*MODEL_DIRECTORY:model_directory
 ÆSpotValidationCalculator#IMAGE_CPU:throttled_input_video_bigLANDMARKS:multi_face_landmarks-ROIS_FROM_LANDMARKS:face_rects_from_landmarksSTART_BUTTON:start_button"TIME_LEFT:time_left_s"IS_VALID:is_valid"$IS_COLLECTION_DONE:is_recording_done"STATUS_CODE:status_code*TIME_TOTAL:spot_duration_s
 äSpotPreprocessedJsonCalculatorIS_VALID:is_valid READY_TO_WRITE:is_recording_doneAVG_ROI:average_roiNORM_LANDMARKS:facemesh_ptsTRACKED_POINTS:tracked_pointsPOINT_LABELS:point_labelsRESET:reset"WRITE_DONE:write_done"JSON_DATA:json_data"BLUE_TOOTH:blue_toothZw
 SyncSetInputStreamHandlerZäï≤“T
@@ -11,5 +11,6 @@
 %
 TRACKED_POINTS
 POINT_LABELS
-RESETRinput_videoRstart_button_prezoutput_videozstatus_codeztime_left_szis_recording_donezis_validz
-blue_toothz	json_datazdense_facemesh_pointsÇspot_duration_sÇenable_phasic_bpÇAPI_KEY:api_key
+RESET
+`SpotMetricsRestCalculatorJSON_DATA:json_data"METRICS_BUFFER:metrics_buffer*API_KEY:api_keyRinput_videoRstart_button_prezoutput_videozstatus_codeztime_left_szis_recording_donezis_validz
+blue_toothz	json_datazdense_facemesh_pointszMETRICS_BUFFER:metrics_bufferÇspot_duration_sÇenable_phasic_bpÇAPI_KEY:api_keyÇMODEL_DIRECTORY:model_directory

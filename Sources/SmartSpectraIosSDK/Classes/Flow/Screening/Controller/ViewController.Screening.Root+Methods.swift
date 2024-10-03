@@ -8,16 +8,17 @@
 import Foundation
 import UIKit
 import AVFoundation
-
+@available(iOS 15.0, *)
 extension ViewController.Screening.Root {
     
     // UI CComponents methods
-    internal func  setupUIComponents() {
+    internal func setupUIComponents() {
         addImagePreview()
         addBorderView()
         addRecordButton()
         addTimerView()
         addFPSLabel()
+        addInfoButton()
     }
     
     internal func addRecordButton() {
@@ -93,6 +94,31 @@ extension ViewController.Screening.Root {
             fpsLabel.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: -40),
             fpsLabel.centerYAnchor.constraint(equalTo: recordButton.centerYAnchor)
         ])
+    }
+    
+    internal func addInfoButton() {
+        let infoButton = UIButton(type: .infoLight)
+        infoButton.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(infoButton)
+        
+        // Positioning the button in the top-right corner with some padding
+        NSLayoutConstraint.activate([
+            infoButton.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 0),
+            infoButton.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
+            infoButton.widthAnchor.constraint(equalToConstant: 40),
+            infoButton.heightAnchor.constraint(equalToConstant: 40)
+        ])
+        
+        // Add target to show the tip message when tapped
+        infoButton.addTarget(self, action: #selector(infoButtonTapped), for: .touchUpInside)
+    }
+    
+    @objc private func infoButtonTapped() {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: "Tip", message: "Please ensure the subject’s face, shoulders, and upper chest are in view and remove any clothing that may impede visibility. Please refer to Instructions For Use for more information.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            self.present(alert, animated: true, completion: nil)
+        }
     }
 
     @objc private func recordButtonTapped() {
@@ -181,17 +207,10 @@ extension ViewController.Screening.Root {
     }
     
     func moveToProcessing() {
-        if #available(iOS 13.0, *) {
-            DispatchQueue.main.async {
-                self.stopRecording()
-                let vc = ViewController.Processing.Root()
-                vc.jsonData = self.jsonData
-                vc.onDataPassed = { [weak self] data in
-                    self?.onDataPassed?(data)
-                    self?.dismiss(animated: true)
-                }
-                self.navigationController?.pushViewController(vc, animated: true)
-            }
+        DispatchQueue.main.async {
+            self.stopRecording()
+            let vc = ViewController.Processing.Root()
+            self.navigationController?.pushViewController(vc, animated: true)
         }
     }
     
@@ -209,11 +228,7 @@ extension ViewController.Screening.Root {
 extension UIViewController {
     var topBarHeight: CGFloat {
         var top = self.navigationController?.navigationBar.frame.height ?? 0.0
-        if #available(iOS 13.0, *) {
-            top += UIApplication.shared.windows.first?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
-        } else {
-            top += UIApplication.shared.statusBarFrame.height
-        }
+        top += UIApplication.shared.windows.first?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0
         return top
     }
 }
