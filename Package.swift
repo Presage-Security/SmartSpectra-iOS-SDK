@@ -26,8 +26,7 @@ let package = Package(
                 "PresagePreprocessing",
                 .product(name: "SwiftProtobuf", package: "swift-protobuf")
                 ],
-            path: "Sources/SmartSpectraIosSDK",
-            resources: [.process("Resources")]
+            path: "Sources/SmartSpectraIosSDK"
         ),
         .binaryTarget(
             name: "PresagePreprocessing",

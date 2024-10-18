@@ -14,6 +14,7 @@ internal class SmartSpectraConfig {
     }
     internal var showFps: Bool
     internal var saveJson: Bool
+    internal var recordingDelay: Int = 3
 
     internal init(spotDuration: Double = 30.0, showFps: Bool = false, saveJson: Bool = false) {
         self.spotDuration = spotDuration

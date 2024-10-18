@@ -35,6 +35,10 @@ public class SmartSpectraIosSDK: ObservableObject {
     public func setShowFps(_ showFps: Bool) {
         configuration.showFps = showFps
     }
+    
+    public func setRecordingDelay(_ delay: Int) {
+        configuration.recordingDelay = delay
+    }
 
     internal func setApiKey(_ apiKey: String) {
         self.apiKey = apiKey

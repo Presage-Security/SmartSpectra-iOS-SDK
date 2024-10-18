@@ -13,10 +13,11 @@ import PresagePreprocessing
 public struct SmartSpectraView: View {
     @ObservedObject private var sdk = SmartSpectraIosSDK.shared
     
-    public init(apiKey: String, spotDuration: Double = 20.0, showFps: Bool = false) {
+    public init(apiKey: String, spotDuration: Double = 20.0, showFps: Bool = false, recordingDelay: Int = 3) {
         sdk.setApiKey(apiKey)
         sdk.setSpotDuration(spotDuration)
         sdk.setShowFps(showFps)
+        sdk.setRecordingDelay(recordingDelay)
     }
 
     public var body: some View {
