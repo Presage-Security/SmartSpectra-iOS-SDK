@@ -8,11 +8,17 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreVideo/CoreVideo.h>
+#import <AVFoundation/AVFoundation.h>
 #ifdef PRESAGE_PREPROCESSING_BUILD
 #import "modules/messages/Status.pbobjc.h"
 #else
 #import "Status.pbobjc.h"
 #endif
+
+typedef NS_ENUM(NSInteger, PresageMode) {
+    PresageModeSpot,
+    PresageModeContinuous
+};
 
 @class PresagePreprocessing;
 
@@ -38,12 +44,20 @@
 @end
 
 @interface PresagePreprocessing : NSObject
-- (instancetype)init:(NSString* _Nonnull)apiKey;
+
+@property(nonatomic, weak) id <PresagePreprocessingDelegate> delegate;
+@property(nonatomic, assign) PresageMode mode;
+@property(nonatomic, copy) NSString *apiKey;
+@property(nonatomic, copy) NSString *graphName;
+@property(nonatomic, assign) AVCaptureDevicePosition cameraPosition;
+
+- (instancetype)init:(NSString* _Nonnull)apiKey mode:(PresageMode)mode withCameraPosition:(AVCaptureDevicePosition)cameraPosition;
 
 - (void)start:(double)spotDuration;
 - (void)stop;
 - (void)buttonStateChangedInFramework:(BOOL)isRecording;
 - (NSString * _Nonnull)getStatusHint:(StatusCode)statusCode;
+- (void)setCameraPosition:(AVCaptureDevicePosition)cameraPosition;
+- (void)setMode:(PresageMode)mode;
 
-@property(weak, nonatomic) id <PresagePreprocessingDelegate> delegate;
 @end

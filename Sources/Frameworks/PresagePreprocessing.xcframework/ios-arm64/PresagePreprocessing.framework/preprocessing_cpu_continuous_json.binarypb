@@ -1,0 +1,17 @@
+
+˛PreprocessingCpuINPUT_VIDEO:input_videoRECORDING_ON:start_button_preIS_VALID:is_valid"&RECORDING_ON_AND_IMAGE_IN:start_button")THROTTLED_VIDEO:throttled_input_video_big"OUTPUT_VIDEO:output_video")MULTI_FACE_LANDMARKS:multi_face_landmarks"-ROIS_FROM_LANDMARKS:face_rects_from_landmarks"ROI_AVERAGES:average_roi"FACEMESH_POINTS:facemesh_pts"+DENSE_FACEMESH_POINTS:dense_facemesh_points"TRACKED_POINTS:tracked_points"!TRACKED_POINT_LABELS:point_labels"TRACKING_RESET:reset")PHASIC_BP_INPUT_TIME:phasic_bp_input_time"!PHASIC_BP_OUTPUT:phasic_bp_output*ENABLE_BP:enable_phasic_bp*API_KEY:api_key*MODEL_DIRECTORY:model_directory
+€ContinuousValidationCalculator#IMAGE_CPU:throttled_input_video_bigLANDMARKS:multi_face_landmarks-ROIS_FROM_LANDMARKS:face_rects_from_landmarksSTART_BUTTON:start_button"IS_VALID:is_valid"STATUS_CODE:status_code
+Ç$ContinuousPreprocessedJsonCalculatorIS_VALID:is_validAVG_ROI:average_roiNORM_LANDMARKS:facemesh_ptsTRACKED_POINTS:tracked_pointsPOINT_LABELS:point_labelsRESET:reset)PHASIC_BP_INPUT_TIME:phasic_bp_input_time!PHASIC_BP_OUTPUT:phasic_bp_output"BLUE_TOOTH:blue_tooth"JSON_DATA:json_data*1BUFFER_DURATION:preprocessed_data_buffer_duration*API_KEY:api_keyZè
+SyncSetInputStreamHandlerräï≤“l
+
+AVG_ROI
+NORM_LANDMARKS
+%
+TRACKED_POINTS
+POINT_LABELS
+RESET
+(
+PHASIC_BP_INPUT_TIME
+PHASIC_BP_OUTPUT
+UContinuousMetricsRestCalculatorJSON_DATA:json_data"METRICS_BUFFER:metrics_bufferRinput_videoRstart_button_prezoutput_videozstatus_codezis_validz
+blue_toothz	json_datazdense_facemesh_pointszMETRICS_BUFFER:metrics_bufferÇ!preprocessed_data_buffer_durationÇenable_phasic_bpÇAPI_KEY:api_keyÇMODEL_DIRECTORY:model_directory
