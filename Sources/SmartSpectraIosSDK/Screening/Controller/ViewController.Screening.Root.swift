@@ -6,11 +6,12 @@
 //
 
 import Foundation
-import UIKit
 import AVFoundation
 import UIKit
 import PresagePreprocessing
 import Network
+import SwiftUI
+import Combine
 
 enum ButtonState {
     case disable, ready, countdown, running
@@ -27,11 +28,12 @@ public extension ViewController.Screening {
 
         //Screen Brightness
         private var originalBrightness: CGFloat = 0.0
-        
+
         //MARK: - UI Components
-        var core: PresagePreprocessing = PresagePreprocessing(SmartSpectraIosSDK.shared.apiKey)
-        var sdkConfig = SmartSpectraIosSDK.shared.configuration
-        
+        var core: PresagePreprocessing = PresagePreprocessing(SmartSpectraIosSDK.shared.apiKey, mode: SmartSpectraIosSDK.shared.setup.configuration.runningMode.presageMode, withCameraPosition: SmartSpectraIosSDK.shared.setup.cameraPosition)
+        var sdkSetup = SmartSpectraIosSDK.shared.setup
+        @ObservedObject var sdk = SmartSpectraIosSDK.shared
+
         var processingStatus = PresageProcessingStatus.idle {
             didSet {
                 DispatchQueue.main.async {
@@ -54,7 +56,7 @@ public extension ViewController.Screening {
                 }
             }
         }
-        
+
         var buttonState: ButtonState = .disable {
             didSet {
                 DispatchQueue.main.async {
@@ -68,7 +70,7 @@ public extension ViewController.Screening {
                         self.recordButton.setTitle("Record", for: .normal)
                         self.recordButton.titleLabel?.font = .systemFont(ofSize: 20)
                     case .countdown:
-                        self.recordButton.setTitle("\(self.sdkConfig.recordingDelay)", for: .normal)
+                        self.recordButton.setTitle("\(self.sdkSetup.recordingDelay)", for: .normal)
                         self.recordButton.titleLabel?.font = .boldSystemFont(ofSize: 40)
                     case .running:
                         self.recordButton.backgroundColor = self.recordButtonOptionObject?.backgroundColor
@@ -86,28 +88,28 @@ public extension ViewController.Screening {
             return res
 
         }()
-        
+
         internal var startOverlayView: UIView = {
             let res = UIView()
             res.backgroundColor = UIColor.white.withAlphaComponent(0.9)
             res.translatesAutoresizingMaskIntoConstraints = false
             return res
         }()
-        
+
         internal var endOverlayView: UIView = {
             let res = UIView()
             res.backgroundColor = UIColor.white.withAlphaComponent(0.9)
             res.translatesAutoresizingMaskIntoConstraints = false
             return res
         }()
-        
+
         internal var bottomOverlayView: UIView = {
             let res = UIView()
             res.backgroundColor = UIColor.white.withAlphaComponent(0.9)
             res.translatesAutoresizingMaskIntoConstraints = false
             return res
         }()
-        
+
         internal lazy var recordButton : UIButton = {
             let res = UIButton()
             res.setTitle((self.recordButtonOptionObject?.title) ?? "Record", for: .normal)
@@ -124,7 +126,7 @@ public extension ViewController.Screening {
 
         internal lazy var counterView: UILabel = {
             let res = UILabel()
-            res.text  = "\(Int(sdkConfig.spotDuration))"
+            res.text  = "\(Int(sdkSetup.configuration.duration))"
             res.font = UIFont.systemFont(ofSize: 40)
             res.backgroundColor = UIColor(red: 0.94, green: 0.34, blue: 0.36, alpha: 1.00)
             res.layer.cornerRadius = 30
@@ -171,21 +173,25 @@ public extension ViewController.Screening {
             label.translatesAutoresizingMaskIntoConstraints = false
             return label
         }()
-        
+
         internal var toastView: Common.View.Toast?
         deinit {
             UIApplication.shared.isIdleTimerDisabled = false
             Logger.log("ViewController.Screening is De-inited!")
         }
 
+        internal var screeningPlotView: UIHostingController<ScreeningPlotView>?
+
         var fpsValues: [Int] = []
         let movingAveragePeriod = 10
+        
+        private var cancellables = Set<AnyCancellable>()
 
         init(viewModel: ViewModel.Screening) {
             self.viewModel = viewModel
-            self.counter = sdkConfig.spotDuration
+            self.counter = sdkSetup.configuration.duration
             self.recordButtonOptionObject = self.viewModel.getCustomProperty()
-            self.fpsLabel.isHidden = !sdkConfig.showFps
+            self.fpsLabel.isHidden = !sdkSetup.showFps
             super.init(nibName: nil, bundle: nil)
             captureSession = AVCaptureSession()
             guard AVCaptureDevice.default(for: .video) != nil else {
@@ -193,13 +199,13 @@ public extension ViewController.Screening {
             }
             switch AVCaptureDevice.authorizationStatus(for: .video) {
             case .authorized:
-                if let frontCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
+                if let cameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: sdkSetup.cameraPosition) {
                     do {
-                        videoDeviceInput = try AVCaptureDeviceInput(device: frontCamera)
+                        videoDeviceInput = try AVCaptureDeviceInput(device: cameraDevice)
                         if captureSession.canAddInput(videoDeviceInput) {
                             captureSession.addInput(videoDeviceInput)
                         }
-                        
+
                         photoOutput = AVCapturePhotoOutput()
                         if captureSession.canAddOutput(photoOutput) {
                             captureSession.addOutput(photoOutput)
@@ -217,13 +223,13 @@ public extension ViewController.Screening {
                         return
                     }
                     if granted {
-                        if let frontCamera = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
+                        if let cameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: sdkSetup.cameraPosition) {
                             do {
-                                videoDeviceInput = try AVCaptureDeviceInput(device: frontCamera)
+                                videoDeviceInput = try AVCaptureDeviceInput(device: cameraDevice)
                                 if captureSession.canAddInput(videoDeviceInput) {
                                     captureSession.addInput(videoDeviceInput)
                                 }
-                                
+
                                 photoOutput = AVCapturePhotoOutput()
                                 if captureSession.canAddOutput(photoOutput) {
                                     captureSession.addOutput(photoOutput)
@@ -232,7 +238,7 @@ public extension ViewController.Screening {
                                 Logger.log("Error setting up front camera input: \(error.localizedDescription)")
                             }
                         } else {
-                            Logger.log("Front camera not available.")
+                            Logger.log("Requested Camera not available.")
                         }
                     } else {
                         Logger.log("Camera access was not granted.")
@@ -244,11 +250,11 @@ public extension ViewController.Screening {
                 Logger.log("Camera access is restricted or denied.")
             }
         }
-        
+
         required init?(coder aDecoder: NSCoder) {
             fatalError("init(coder:) has not been implemented")
         }
-        
+
         public override func viewDidLoad() {
             super.viewDidLoad()
             self.navigationController?.interactivePopGestureRecognizer?.delegate = self
@@ -259,12 +265,23 @@ public extension ViewController.Screening {
             setTitleView()
             setupUIComponents()
             core.delegate = self
-            core.start(sdkConfig.spotDuration)
+            core.start(sdkSetup.configuration.duration)
             
+            // show counterview only on spot mode
+            // TODO: 11/14/24 remove this once view is refactored in SwiftUI
+            sdk.setup.$configuration
+                .receive(on: DispatchQueue.main) // Ensure updates occur on the main thread
+                .sink { [weak self] newConfiguration in
+                    self?.counterView.isHidden = newConfiguration.runningMode != .spot
+                }
+                .store(in: &cancellables)
+
             // Check for internet connection
+            // TODO: 10/24/24 evaluate if we need it and remove this monitor otherwise
             monitorInternetConnection()
+
         }
-        
+
         private func monitorInternetConnection() {
             // TODO: 9/16/24 Seems unnecessary with sdk's network comm moving inside the graph
             let monitor = NWPathMonitor()
@@ -284,7 +301,7 @@ public extension ViewController.Screening {
 
             monitor.start(queue: queue)
         }
-        
+
         private func showNoInternetAlert() {
             let alert = UIAlertController(title: "No Internet Connection", message: "Please check your internet connection and try again.", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { _ in
@@ -292,22 +309,22 @@ public extension ViewController.Screening {
             }))
             self.present(alert, animated: true, completion: nil)
         }
-        
+
         public override func viewDidLayoutSubviews() {
             super.viewDidLayoutSubviews()
         }
-        
+
         public override func viewWillAppear(_ animated: Bool) {
             super.viewWillAppear(animated)
             originalBrightness = UIScreen.main.brightness  // Store current brightness
             UIScreen.main.brightness = 1.0
         }
-        
+
         public override func viewWillDisappear(_ animated: Bool) {
             super.viewWillDisappear(animated)
             UIScreen.main.brightness = originalBrightness
         }
-        
+
         private func setTitleView() {
             let titleView = UIView()
             let titleLabel = UILabel()
@@ -319,7 +336,7 @@ public extension ViewController.Screening {
             titleLabel.center = titleView.center
             navigationItem.titleView = titleView
         }
-        
+
         private func setCustomBackButton() {
             let backButton = UIButton(type: .system)
             backButton.setImage(UIImage(systemName: "arrow.left"), for: .normal)
@@ -328,12 +345,13 @@ public extension ViewController.Screening {
             let customBackButton = UIBarButtonItem(customView: backButton)
             navigationItem.leftBarButtonItem = customBackButton
         }
-        
+
         @objc func backButtonPressed() {
             print("back button is pressed")
             DispatchQueue.main.async {
                 self.stopRecording()
                 self.core.stop()
+                self.processingStatus = .idle
                 self.dismiss(animated: true, completion: nil)
             }
         }
@@ -344,7 +362,7 @@ extension ViewController.Screening.Root: UIGestureRecognizerDelegate {
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
-    
+
     public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         guard gestureRecognizer.isEqual(self.navigationController?.interactivePopGestureRecognizer) else { return true }
         stopRecording()
@@ -354,7 +372,7 @@ extension ViewController.Screening.Root: UIGestureRecognizerDelegate {
 
 @available(iOS 15.0, *)
 extension ViewController.Screening.Root: AVCaptureVideoDataOutputSampleBufferDelegate {
-    
+
     public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         // Process the light data here
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
@@ -385,16 +403,16 @@ extension ViewController.Screening.Root {
             if self.toastView == nil {
                 // Create a new instance of Common.View.Toast
                 let toast = Common.View.Toast(backgroundColor: .black, textColor: .white)
-                
+
                 // Configure the toast with the provided message
                 toast.setMessage(msg)
-                
+
                 // Add the toast to the view hierarchy
                 toast.addToView(self.bottomOverlayView)
-                
+
                 // Set the currentToast property to the new toast instance
                 self.toastView = toast
-                
+
                 // Animate the toast's appearance
                 UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseInOut, animations: {
                     toast.frame.size.height = 70

@@ -4,6 +4,7 @@ import Foundation
 import Combine
 
 import PresagePreprocessing
+import AVFoundation
 
 public typealias MetricsBuffer = Presage_Physiology_MetricsBuffer
 
@@ -13,31 +14,40 @@ public class SmartSpectraIosSDK: ObservableObject {
     @Published public var meshPoints: [(x: Int16, y: Int16)] = []
     @Published public var metricsBuffer: MetricsBuffer? {
         didSet {
-            updateResultText()
+            if setup.configuration.runningMode == .spot {
+                //TODO: 10/24/24: Update this for all result once strict results return for continuous
+                updateResultText()
+            }
         }
     }
-    
+
     @Published internal var resultText: String = "No Results\n..."
     @Published internal var resultErrorText: String = ""
 
-    internal var configuration: SmartSpectraConfig
+    internal var setup: SmartSpectraSetup
     internal var apiKey: String
 
-    private init(apiKey: String = "", configuration: SmartSpectraConfig = SmartSpectraConfig()) {
-        self.configuration = configuration
+    private init(apiKey: String = "", setup: SmartSpectraSetup = .init(), showFps: Bool = false) {
         self.apiKey = apiKey
+        self.setup = setup
+        self.setup.showFps = showFps
     }
 
-    public func setSpotDuration(_ duration: Double) {
-        configuration.spotDuration = duration
-    }
 
     public func setShowFps(_ showFps: Bool) {
-        configuration.showFps = showFps
+        setup.showFps = showFps
     }
-    
+
+    public func setConfiguration(_ configuration: SmartSpectraConfiguration) {
+        setup.configuration = configuration
+    }
+
     public func setRecordingDelay(_ delay: Int) {
-        configuration.recordingDelay = delay
+        self.setup.recordingDelay = delay
+    }
+
+    public func setCameraPosition(_ cameraPosition: AVCaptureDevice.Position) {
+        self.setup.cameraPosition = cameraPosition
     }
 
     internal func setApiKey(_ apiKey: String) {
@@ -54,7 +64,7 @@ public class SmartSpectraIosSDK: ObservableObject {
         let strictBreathingRate = round(metricsBuffer.breathing.strict.value)
         let strictPulseRateInt = Int(strictPulseRate)
         let strictBreathingRateInt = Int(strictBreathingRate)
-        
+
         let pulseRateText = "Pulse Rate: \(strictPulseRateInt == 0 ? "N/A": "\(strictPulseRateInt) BPM")"
         let breathingRateText = "Breathing Rate: \(strictBreathingRateInt == 0 ? "N/A": "\(strictBreathingRateInt) BPM")"
         resultText = "\(breathingRateText)\n\(pulseRateText)"
@@ -67,4 +77,5 @@ public class SmartSpectraIosSDK: ObservableObject {
             resultErrorText = ""
         }
     }
+
 }

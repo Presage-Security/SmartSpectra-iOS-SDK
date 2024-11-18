@@ -28,6 +28,11 @@ let package = Package(
                 ],
             path: "Sources/SmartSpectraIosSDK"
         ),
+        .testTarget(
+            name: "SmartSpectraIosSDKTests",
+            dependencies: ["SmartSpectraIosSDK"],
+            path: "Tests/SmartSpectraIosSDKTests"
+        ),
         .binaryTarget(
             name: "PresagePreprocessing",
             path: "Sources/Frameworks/PresagePreprocessing.xcframework"
