@@ -1,4 +1,4 @@
-# SmartSpectra iOS App
+# SmartSpectra iOS SDK
 
 **This repository has been archived.**
 
